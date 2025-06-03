@@ -54,8 +54,8 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Về EduBot</Text>
         <View style={styles.aboutContainer}>
           <Text style={styles.aboutText}>
-            EduBot là chatbot AI được thiết kế để hỗ trợ học sinh THPT tại Việt Nam trong quá trình định hướng học tập và nghề nghiệp. 
-            Với cơ sở dữ liệu phong phú về các ngành học và xu hướng nghề nghiệp hiện đại, 
+            EduBot là chatbot AI được thiết kế để hỗ trợ học sinh THPT tại Việt Nam trong quá trình định hướng học tập và nghề nghiệp.
+            Với cơ sở dữ liệu phong phú về các ngành học và xu hướng nghề nghiệp hiện đại,
             EduBot cung cấp thông tin chính xác và phù hợp với nhu cầu của từng học sinh.
           </Text>
           <Link href="/contact" asChild>
@@ -170,3 +170,4 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
 });
+

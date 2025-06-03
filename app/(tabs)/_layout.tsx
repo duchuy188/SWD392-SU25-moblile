@@ -1,9 +1,19 @@
 import { Tabs } from 'expo-router';
-import { Home, GraduationCap, Briefcase, MessageSquare, Contact } from 'lucide-react-native';
-import { View, Text, StyleSheet } from 'react-native';
+import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
+  const renderHeaderRight = () => (
+    <Link href="/login" asChild>
+      <TouchableOpacity style={styles.loginButton}>
+        <LogIn size={18} color={Colors.primary} />
+        <Text style={styles.loginButtonText}>Đăng nhập</Text>
+      </TouchableOpacity>
+    </Link>
+  );
+
   return (
     <Tabs
       screenOptions={{
@@ -14,6 +24,8 @@ export default function TabLayout() {
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
         headerTintColor: Colors.primary,
+        headerRight: renderHeaderRight,
+        headerRightContainerStyle: styles.headerRightContainer,
       }}>
       <Tabs.Screen
         name="index"
@@ -93,4 +105,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.primary,
   },
+  headerRightContainer: {
+    paddingRight: 16,
+  },
+  loginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  loginButtonText: {
+    marginLeft: 4,
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.primary,
+  },
 });
+

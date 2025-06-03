@@ -1,4 +1,4 @@
-import { useState } from 'react';
+                       import { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Search } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
