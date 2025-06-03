@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff, LogIn } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -25,6 +26,7 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const validateEmail = (email: string) => {
     const emailRegex = /\S+@\S+\.\S+/;
@@ -60,6 +62,20 @@ export default function LoginScreen() {
     // Simulate authentication
     setTimeout(() => {
       setIsLoading(false);
+
+      // Create mock user data
+      const userData = {
+        id: '1',
+        name: 'Minh Nguyễn',
+        email: email,
+        avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg',
+        school: 'FPT University',
+        grade: 'Năm 3',
+      };
+
+      // Save user to context
+      login(userData);
+
       // Navigate to main app
       router.replace('/(tabs)');
     }, 1500);

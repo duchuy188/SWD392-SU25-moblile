@@ -1,18 +1,39 @@
 import { Tabs } from 'expo-router';
-import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn } from 'lucide-react-native';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn, User } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Link, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function TabLayout() {
-  const renderHeaderRight = () => (
-    <Link href="/login" asChild>
-      <TouchableOpacity style={styles.loginButton}>
-        <LogIn size={18} color={Colors.primary} />
-        <Text style={styles.loginButtonText}>Đăng nhập</Text>
-      </TouchableOpacity>
-    </Link>
-  );
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  // Header right component - shows either login button or user avatar
+  const renderHeaderRight = () => {
+    if (isAuthenticated && user) {
+      return (
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={() => router.push('/(tabs)/profile')}
+        >
+          <Image
+            source={{ uri: user.avatar }}
+            style={styles.avatarImage}
+          />
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <Link href="/(auth)/login" asChild>
+          <TouchableOpacity style={styles.loginButton}>
+            <LogIn size={18} color={Colors.primary} />
+            <Text style={styles.loginButtonText}>Đăng nhập</Text>
+          </TouchableOpacity>
+        </Link>
+      );
+    }
+  };
 
   return (
     <Tabs
@@ -65,6 +86,13 @@ export default function TabLayout() {
         options={{
           title: 'Liên hệ',
           tabBarIcon: ({ color, size }) => <Contact size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Cá nhân',
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>
@@ -122,6 +150,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: Colors.primary,
+  },
+  avatarContainer: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
 });
 
