@@ -1,17 +1,56 @@
+import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { USER_KEY } from '@/components/api/authService';
+import Avatar from '@/components/Avatar';
 import { Tabs } from 'expo-router';
 import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn } from 'lucide-react-native';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
+import { Link, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
+import { authApi } from '@/components/api/authService';
+import UserMenu from '@/components/UserMenu';
+import useCurrentUser from '@/hooks/useCurrentUser';
 
 export default function TabLayout() {
+  const [user, setUser] = useCurrentUser();
+  const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      await AsyncStorage.clear();
+      setUser(null);
+      setModalVisible(false);
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert('Lỗi', 'Đăng xuất thất bại');
+    }
+  };
+
+  const handleProfile = () => {
+    setModalVisible(false);
+    Alert.alert('Profile', 'Chức năng profile sẽ được phát triển!');
+    // router.push('/profile'); // Nếu có màn profile
+  };
+
   const renderHeaderRight = () => (
-    <Link href="/login" asChild>
-      <TouchableOpacity style={styles.loginButton}>
-        <LogIn size={18} color={Colors.primary} />
-        <Text style={styles.loginButtonText}>Đăng nhập</Text>
-      </TouchableOpacity>
-    </Link>
+    user ? (
+      <UserMenu
+        user={user}
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        onLogout={handleLogout}
+        onProfile={handleProfile}
+      />
+    ) : (
+      <Link href="/login" asChild>
+        <TouchableOpacity style={styles.loginButton}>
+          <LogIn size={18} color={Colors.primary} />
+          <Text style={styles.loginButtonText}>Đăng nhập</Text>
+        </TouchableOpacity>
+      </Link>
+    )
   );
 
   return (
@@ -122,6 +161,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: Colors.primary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  menuContainer: {
+    marginTop: 60,
+    marginRight: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 8,
+    width: 150,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  menuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  menuText: {
+    fontSize: 16,
+    color: Colors.text,
   },
 });
 

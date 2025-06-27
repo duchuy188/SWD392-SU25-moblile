@@ -10,11 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff, LogIn } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { authApi, TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/components/api/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -31,14 +34,10 @@ export default function LoginScreen() {
     return emailRegex.test(email);
   };
 
-  const handleLogin = () => {
-    // Reset errors
+  const handleLogin = async () => {
     setEmailError('');
     setPasswordError('');
-
-    // Validate fields
     let isValid = true;
-
     if (!email.trim()) {
       setEmailError('Email không được để trống');
       isValid = false;
@@ -46,32 +45,35 @@ export default function LoginScreen() {
       setEmailError('Email không hợp lệ');
       isValid = false;
     }
-
     if (!password) {
       setPasswordError('Mật khẩu không được để trống');
       isValid = false;
     }
-
     if (!isValid) return;
-
-    // Show loading state
     setIsLoading(true);
-
-    // Simulate authentication
-    setTimeout(() => {
+    try {
+      const response = await authApi.login(email, password);
+      await AsyncStorage.setItem(TOKEN_KEY, response.accessToken);
+      await AsyncStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(response.user));
       setIsLoading(false);
-      // Navigate to main app
-      router.replace('/(tabs)');
-    }, 1500);
+      Alert.alert('Đăng nhập thành công!', 'Chào mừng bạn trở lại', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/(tabs)'),
+        },
+      ]);
+    } catch (error) {
+      setIsLoading(false);
+      // Lỗi đã được interceptor xử lý Alert
+    }
   };
 
   const handleForgotPassword = () => {
-    // Navigate to forgot password screen
     router.push('/(auth)/forgot-password');
   };
 
   const handleSignUp = () => {
-    // Navigate to signup screen
     router.push('/(auth)/signup');
   };
 
@@ -91,13 +93,11 @@ export default function LoginScreen() {
               <Text style={styles.title}>EduBot</Text>
               <Text style={styles.subtitle}>Đăng nhập để tiếp tục</Text>
             </View>
-
             <Image
               source={{ uri: 'https://images.pexels.com/photos/4145190/pexels-photo-4145190.jpeg' }}
               style={styles.image}
               resizeMode="cover"
             />
-
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Email</Text>
@@ -114,7 +114,6 @@ export default function LoginScreen() {
                 />
                 {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
               </View>
-
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Mật khẩu</Text>
                 <View style={[styles.passwordContainer, passwordError ? styles.inputError : null]}>
@@ -137,12 +136,10 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
                 {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
-
                 <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
                   <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
                 </TouchableOpacity>
               </View>
-
               <TouchableOpacity
                 style={[styles.loginButton, isLoading ? styles.loginButtonDisabled : null]}
                 onPress={handleLogin}
@@ -157,7 +154,6 @@ export default function LoginScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-
               <View style={styles.signupContainer}>
                 <Text style={styles.signupText}>Chưa có tài khoản? </Text>
                 <TouchableOpacity onPress={handleSignUp}>
