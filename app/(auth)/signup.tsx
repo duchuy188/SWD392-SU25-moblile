@@ -17,10 +17,13 @@ import {
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, UserPlus } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { authApi } from '@/components/api/authService';
 
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +32,8 @@ export default function SignUpScreen() {
 
   const [fullNameError, setFullNameError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [addressError, setAddressError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
@@ -44,10 +49,11 @@ export default function SignUpScreen() {
     return password.length >= 6 && /\d/.test(password) && /[a-zA-Z]/.test(password);
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     // Reset errors
     setFullNameError('');
     setEmailError('');
+    setPhoneError('');
     setPasswordError('');
     setConfirmPasswordError('');
 
@@ -64,6 +70,11 @@ export default function SignUpScreen() {
       isValid = false;
     } else if (!validateEmail(email)) {
       setEmailError('Email không hợp lệ');
+      isValid = false;
+    }
+
+    if (!phone.trim()) {
+      setPhoneError('Số điện thoại không được để trống');
       isValid = false;
     }
 
@@ -86,7 +97,8 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     // Simulate api call for registration
-    setTimeout(() => {
+    try {
+      await authApi.register({ fullName, email, phone,address, password });
       setIsLoading(false);
 
       // Show success message
@@ -100,7 +112,10 @@ export default function SignUpScreen() {
           }
         ]
       );
-    }, 1500);
+    } catch (error) {
+      setIsLoading(false);
+      // Lỗi đã được interceptor xử lý Alert
+    }
   };
 
   const handleBackToLogin = () => {
@@ -168,6 +183,35 @@ export default function SignUpScreen() {
                     keyboardType="email-address"
                   />
                   {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Số điện thoại</Text>
+                  <TextInput
+                    style={[styles.input, phoneError ? styles.inputError : null]}
+                    placeholder="Nhập số điện thoại của bạn"
+                    value={phone}
+                    onChangeText={(text) => {
+                      setPhone(text);
+                      setPhoneError('');
+                    }}
+                    keyboardType="phone-pad"
+                  />
+                  {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Địa chỉ</Text>
+                  <TextInput
+                    style={[styles.input, addressError ? styles.inputError : null]}
+                    placeholder="Nhập địa chỉ của bạn"
+                    value={address}
+                    onChangeText={(text) => {
+                      setAddress(text);
+                      setAddressError('');
+                    }}
+                  />
+                  {addressError ? <Text style={styles.errorText}>{addressError}</Text> : null}
                 </View>
 
                 <View style={styles.inputContainer}>
