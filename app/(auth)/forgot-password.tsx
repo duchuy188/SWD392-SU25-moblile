@@ -16,6 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { authApi } from '@/components/api/authService';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -30,11 +31,8 @@ export default function ForgotPasswordScreen() {
     return emailRegex.test(email);
   };
 
-  const handleSendResetLink = () => {
-    // Reset errors
+  const handleSendResetLink = async () => {
     setEmailError('');
-
-    // Validate email
     if (!email.trim()) {
       setEmailError('Email không được để trống');
       return;
@@ -42,27 +40,25 @@ export default function ForgotPasswordScreen() {
       setEmailError('Email không hợp lệ');
       return;
     }
-
-    // Show loading state
     setIsLoading(true);
-
-    // Simulate api call
-    setTimeout(() => {
+    try {
+      await authApi.forgotPassword(email);
       setIsLoading(false);
       setIsSuccess(true);
-
-      // Show success message
       Alert.alert(
-        "Thành công",
-        "Đường dẫn đặt lại mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.",
+        'Thành công',
+        'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư và nhập mã OTP.',
         [
           {
-            text: "OK",
-            onPress: () => router.replace('/(auth)/login')
+            text: 'OK',
+            onPress: () => router.replace({ pathname: '/(auth)/verify-otp', params: { email } })
           }
         ]
       );
-    }, 1500);
+    } catch (error: any) {
+      setIsLoading(false);
+      setEmailError(error?.message || 'Đã có lỗi xảy ra');
+    }
   };
 
   const handleBackToLogin = () => {
