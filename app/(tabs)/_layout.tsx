@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { USER_KEY } from '@/components/api/authService';
+import { USER_KEY } from '@/services/authService';
 import Avatar from '@/components/Avatar';
 import { Tabs } from 'expo-router';
 import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn } from 'lucide-react-native';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { authApi } from '@/components/api/authService';
+import { authApi } from '@/services/authService';
 import UserMenu from '@/components/UserMenu';
 import useCurrentUser from '@/hooks/useCurrentUser';
 
@@ -30,8 +30,7 @@ export default function TabLayout() {
 
   const handleProfile = () => {
     setModalVisible(false);
-    Alert.alert('Profile', 'Chức năng profile sẽ được phát triển!');
-    // router.push('/profile'); // Nếu có màn profile
+    router.push('/profile'); // Điều hướng đến màn profile
   };
 
   const renderHeaderRight = () => (

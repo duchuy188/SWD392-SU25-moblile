@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { authApi } from '@/components/api/authService';
+import { authApi } from '@/services/authService';
 import Colors from '@/constants/Colors';
 
 export default function ResetPasswordScreen() {

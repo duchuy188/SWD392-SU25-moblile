@@ -16,7 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { authApi } from '@/components/api/authService';
+import { authApi } from '@/services/authService';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
