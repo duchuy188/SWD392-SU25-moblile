@@ -16,7 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff, LogIn } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { authApi, TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/components/api/authService';
+import { authApi, TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {

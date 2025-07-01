@@ -17,7 +17,7 @@ import {
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, UserPlus } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { authApi } from '@/components/api/authService';
+import { authApi } from '@/services/authService';
 
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState('');

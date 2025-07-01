@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { USER_KEY } from '@/components/api/authService';
+import { USER_KEY } from '@/services/authService';
 
 export default function useCurrentUser() {
   const [user, setUser] = useState<any>(null);
