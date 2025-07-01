@@ -11,12 +11,12 @@ export const getMajors = async (params?: {
   includeFilters?: boolean;
   quickSearch?: boolean;
 }) => {
-  const response = await api.get('/api/major/', { params });
+  const response = await api.get('/api/majors', { params });
   return response.data;
 };
 
 // Lấy chi tiết 1 ngành học
 export const getMajorById = async (majorId: string) => {
-  const response = await api.get(`/api/major/${majorId}`);
+  const response = await api.get(`/api/majors/${majorId}`);
   return response.data;
 };
