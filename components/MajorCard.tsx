@@ -1,69 +1,25 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { BookOpen, Code, Stethoscope, Briefcase, Palette, Users } from 'lucide-react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import Colors from '@/constants/Colors';
 
 type MajorCardProps = {
-  title: string;
-  description: string;
-  subjects: string[];
-  icon: string;
+  name: string;
+  department?: string;
+  description?: string;
+  shortDescription?: string;
+  imageUrl?: string;
+  code?: string;
 };
 
-export function MajorCard({ title, description, subjects, icon }: MajorCardProps) {
-  const getIcon = () => {
-    switch (icon) {
-      case 'code':
-        return <Code size={24} color="#FFFFFF" />;
-      case 'stethoscope':
-        return <Stethoscope size={24} color="#FFFFFF" />;
-      case 'briefcase':
-        return <Briefcase size={24} color="#FFFFFF" />;
-      case 'palette':
-        return <Palette size={24} color="#FFFFFF" />;
-      case 'users':
-        return <Users size={24} color="#FFFFFF" />;
-      default:
-        return <BookOpen size={24} color="#FFFFFF" />;
-    }
-  };
-
-  const getIconBackgroundColor = () => {
-    switch (icon) {
-      case 'code':
-        return '#4F46E5'; // tech - indigo
-      case 'stethoscope':
-        return '#EF4444'; // medical - red
-      case 'briefcase':
-        return '#F59E0B'; // business - amber
-      case 'palette':
-        return '#8B5CF6'; // art - purple
-      case 'users':
-        return '#10B981'; // social - emerald
-      default:
-        return Colors.primary;
-    }
-  };
-
+export function MajorCard({ name, department, description, shortDescription, imageUrl, code }: MajorCardProps) {
   return (
     <View style={styles.card}>
-      <View style={[styles.iconContainer, { backgroundColor: getIconBackgroundColor() }]}>
-        {getIcon()}
-      </View>
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{description}</Text>
-        
-        <View style={styles.subjectsContainer}>
-          <Text style={styles.subjectsLabel}>Môn học chính:</Text>
-          <View style={styles.subjectsList}>
-            {subjects.map((subject, index) => (
-              <View key={index} style={styles.subjectItem}>
-                <Text style={styles.subjectText}>{subject}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
+      {imageUrl && (
+        <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+      )}
+      <Text style={styles.title}>{name}</Text>
+      {code && <Text style={styles.detailText}>Mã ngành: {code}</Text>}
+      {department && <Text style={styles.detailText}>Ngành học: {department}</Text>}
+      {(shortDescription || description) && <Text style={styles.detailText}>{shortDescription || description}</Text>}
     </View>
   );
 }
@@ -79,49 +35,23 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     overflow: 'hidden',
-  },
-  iconContainer: {
     padding: 16,
-    alignItems: 'flex-start',
   },
-  contentContainer: {
-    padding: 16,
-    paddingTop: 8,
+  image: {
+    width: '100%',
+    height: 140,
+    borderRadius: 8,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: Colors.text,
     marginBottom: 4,
   },
-  description: {
+  detailText: {
     fontSize: 14,
-    color: Colors.textLight,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  subjectsContainer: {
-    marginTop: 4,
-  },
-  subjectsLabel: {
-    fontSize: 14,
-    fontWeight: '500',
     color: Colors.text,
-    marginBottom: 8,
-  },
-  subjectsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  subjectItem: {
-    backgroundColor: Colors.lightBackground,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 4,
-  },
-  subjectText: {
-    fontSize: 12,
-    color: Colors.text,
+    marginBottom: 4,
   },
 });
