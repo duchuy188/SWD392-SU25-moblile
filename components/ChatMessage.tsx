@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import Colors from '@/constants/Colors';
 
 export type Message = {
@@ -6,6 +6,7 @@ export type Message = {
   text: string;
   isBot: boolean;
   timestamp: Date;
+  imageUri?: string;
 };
 
 type ChatMessageProps = {
@@ -13,28 +14,52 @@ type ChatMessageProps = {
 };
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const formattedTime = message.timestamp.toLocaleTimeString([], { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  const formattedTime = message.timestamp.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
   return (
-    <View style={[
-      styles.messageContainer,
-      message.isBot ? styles.botMessageContainer : styles.userMessageContainer
-    ]}>
-      <View style={[
-        styles.messageBubble,
-        message.isBot ? styles.botMessageBubble : styles.userMessageBubble
-      ]}>
-        <Text style={[
-          styles.messageText,
-          message.isBot ? styles.botMessageText : styles.userMessageText
-        ]}>
+    <View
+      style={[
+        styles.messageContainer,
+        message.isBot
+          ? styles.botMessageContainer
+          : styles.userMessageContainer,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          message.isBot ? styles.botMessageBubble : styles.userMessageBubble,
+        ]}
+      >
+        {message.imageUri && (
+          <Image
+            source={{ uri: message.imageUri }}
+            style={styles.messageImage}
+            resizeMode="cover"
+          />
+        )}
+        <Text
+          style={[
+            styles.messageText,
+            message.isBot ? styles.botMessageText : styles.userMessageText,
+          ]}
+        >
           {message.text}
         </Text>
       </View>
-      <Text style={styles.timestamp}>{formattedTime}</Text>
+      <Text
+        style={[
+          styles.timestamp,
+          message.isBot
+            ? { alignSelf: 'flex-start' }
+            : { alignSelf: 'flex-end' },
+        ]}
+      >
+        {formattedTime}
+      </Text>
     </View>
   );
 }
@@ -62,6 +87,12 @@ const styles = StyleSheet.create({
   },
   userMessageBubble: {
     backgroundColor: Colors.primary,
+  },
+  messageImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   messageText: {
     fontSize: 15,
