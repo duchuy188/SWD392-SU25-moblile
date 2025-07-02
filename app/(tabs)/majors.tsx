@@ -1,29 +1,53 @@
-                       import { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Search } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { MajorCard } from '@/components/MajorCard';
-import { majorsData } from '@/data/majorsData';
+import { getMajors } from '@/services/majorService';
+import { useRouter } from 'expo-router';
 
 export default function MajorsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [majors, setMajors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [categories, setCategories] = useState([{ id: 'all', name: 'Tất cả' }]);
+  const router = useRouter();
 
-  const categories = [
-    { id: 'all', name: 'Tất cả' },
-    { id: 'tech', name: 'Công nghệ' },
-    { id: 'medical', name: 'Y dược' },
-    { id: 'business', name: 'Kinh tế' },
-    { id: 'art', name: 'Nghệ thuật' },
-    { id: 'social', name: 'Xã hội' },
-  ];
-
-  const filteredMajors = majorsData.filter(major => {
-    const matchesSearch = major.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          major.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || major.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  useEffect(() => {
+    const fetchMajors = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const params = {
+          search: searchQuery || undefined,
+        };
+        const data = await getMajors(params);
+        let majorsList = data.majors || data || [];
+        
+        const departmentSet = new Set<string>();
+        majorsList.forEach((major: any) => {
+          if (major.department) departmentSet.add(major.department);
+        });
+        const dynamicCategories = [
+          { id: 'all', name: 'Tất cả' },
+          ...Array.from(departmentSet).map(dep => ({ id: dep, name: dep }))
+        ];
+        setCategories(dynamicCategories);
+        
+        if (selectedCategory !== 'all') {
+          majorsList = majorsList.filter((major: any) => major.department === selectedCategory);
+        }
+        setMajors(majorsList);
+      } catch (err) {
+        setError('Không thể tải danh sách ngành học.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMajors();
+  }, [searchQuery, selectedCategory]);
 
   return (
     <ScrollView style={styles.container}>
@@ -74,15 +98,27 @@ export default function MajorsScreen() {
 
       {/* Majors list */}
       <View style={styles.majorsContainer}>
-        {filteredMajors.length > 0 ? (
-          filteredMajors.map(major => (
-            <MajorCard 
-              key={major.id}
-              title={major.title}
-              description={major.description}
-              subjects={major.subjects}
-              icon={major.icon}
-            />
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 32 }} />
+        ) : error ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>{error}</Text>
+          </View>
+        ) : majors.length > 0 ? (
+          majors.map((major: any) => (
+            <TouchableOpacity
+              key={major._id || major.id}
+              onPress={() => router.push({ pathname: '/major-detail', params: { id: major._id || major.id } })}
+            >
+              <MajorCard 
+                name={major.name || major.title}
+                description={major.description}
+                code={major.code}
+                department={major.department}
+                imageUrl={major.imageUrl}
+                shortDescription={major.shortDescription}
+              />
+            </TouchableOpacity>
           ))
         ) : (
           <View style={styles.emptyState}>
