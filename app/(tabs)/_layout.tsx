@@ -3,8 +3,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { USER_KEY } from '@/services/authService';
 import Avatar from '@/components/Avatar';
 import { Tabs } from 'expo-router';
-import { Home, GraduationCap, Briefcase, MessageSquare, Contact, LogIn } from 'lucide-react-native';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
+import {
+  Home,
+  GraduationCap,
+  Briefcase,
+  MessageSquare,
+  Contact,
+  LogIn,
+} from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  Alert,
+} from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { authApi } from '@/services/authService';
@@ -33,7 +48,7 @@ export default function TabLayout() {
     router.push('/profile'); // Điều hướng đến màn profile
   };
 
-  const renderHeaderRight = () => (
+  const renderHeaderRight = () =>
     user ? (
       <UserMenu
         user={user}
@@ -49,8 +64,7 @@ export default function TabLayout() {
           <Text style={styles.loginButtonText}>Đăng nhập</Text>
         </TouchableOpacity>
       </Link>
-    )
-  );
+    );
 
   return (
     <Tabs
@@ -64,7 +78,8 @@ export default function TabLayout() {
         headerTintColor: Colors.primary,
         headerRight: renderHeaderRight,
         headerRightContainerStyle: styles.headerRightContainer,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -81,28 +96,36 @@ export default function TabLayout() {
         name="majors"
         options={{
           title: 'Ngành học',
-          tabBarIcon: ({ color, size }) => <GraduationCap size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <GraduationCap size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="career"
         options={{
           title: 'Hướng nghiệp',
-          tabBarIcon: ({ color, size }) => <Briefcase size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Briefcase size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="chatbot"
         options={{
           title: 'Chatbot',
-          tabBarIcon: ({ color, size }) => <MessageSquare size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MessageSquare size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="contact"
         options={{
           title: 'Liên hệ',
-          tabBarIcon: ({ color, size }) => <Contact size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Contact size={size} color={color} />
+          ),
         }}
       />
     </Tabs>
@@ -113,7 +136,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#FFFFFF',
     borderTopColor: '#E0E0E0',
-    height: 60,
+    height: 70,
     paddingBottom: 5,
     paddingTop: 5,
   },
@@ -189,4 +212,3 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 });
-
