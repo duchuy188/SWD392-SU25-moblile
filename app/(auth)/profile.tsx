@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, ImageBackground } from 'react-native';
+import { View, StyleSheet, ScrollView, ImageBackground, Text } from 'react-native';
 import { Avatar, Card, List, Switch, Button, Divider, useTheme } from 'react-native-paper';
 import { LogOut, User, Settings, HelpCircle, Moon, Info, FileText } from 'lucide-react-native';
 import { authApi } from '@/services/authService';
+import { getMyTestResults } from '@/services/testService';
+import { useRouter } from 'expo-router';
 
 interface User {
   id: string;
@@ -20,7 +22,11 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [showTestHistory, setShowTestHistory] = useState(false);
+  const [testHistory, setTestHistory] = useState<any[]>([]);
+  const [loadingTestHistory, setLoadingTestHistory] = useState(false);
   const theme = useTheme();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -36,12 +42,57 @@ export default function ProfileScreen() {
     fetchProfile();
   }, []);
 
+  const handleShowTestHistory = async () => {
+    setShowTestHistory(true);
+    setLoadingTestHistory(true);
+    try {
+      const data = await getMyTestResults();
+      setTestHistory(data);
+    } catch (e) {
+      setTestHistory([]);
+    } finally {
+      setLoadingTestHistory(false);
+    }
+  };
+
   if (loading) {
-    return <Card style={{ margin: 32, padding: 32 }}><List.Item title="Đang tải..." /></Card>;
+    return <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Đang tải...</Text>} /></Card>;
   }
 
   if (!user) {
-    return <Card style={{ margin: 32, padding: 32 }}><List.Item title="Không thể tải thông tin người dùng." /></Card>;
+    return <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Không thể tải thông tin người dùng.</Text>} /></Card>;
+  }
+
+  if (showTestHistory) {
+    return (
+      <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <Card style={styles.profileCard}>
+          <List.Item
+            title={<Text>Test History</Text>}
+            left={() => <FileText color={theme.colors.primary} size={22} />}
+            right={() => null}
+          />
+        </Card>
+        <Button onPress={() => setShowTestHistory(false)} style={{margin: 16}}><Text>Quay lại</Text></Button>
+        {loadingTestHistory ? (
+          <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Đang tải...</Text>} /></Card>
+        ) : (
+          testHistory.length === 0 ? (
+            <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Không có lịch sử test.</Text>} /></Card>
+          ) : (
+            testHistory.map((item, idx) => (
+              <Card key={idx} style={{ margin: 12, padding: 12 }}>
+                <List.Item
+                  title={<Text>{item.testName}</Text>}
+                  description={<Text>Loại: {item.testType} | Kết quả: {item.result} | Ngày: {item.date ? new Date(item.date).toLocaleString() : ''}</Text>}
+                  left={() => <FileText color={theme.colors.primary} size={22} />}
+                />
+              </Card>
+            ))
+          )
+        )}
+      </ScrollView>
+    );
   }
 
   return (
@@ -79,7 +130,13 @@ export default function ProfileScreen() {
             title="Personal Data"
             left={() => <User color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
-            onPress={() => {}}
+            onPress={() => router.push('./profile-info')}
+          />
+          <List.Item
+            title="Test History"
+            left={() => <FileText color={theme.colors.primary} size={22} />}
+            right={() => <List.Icon icon="chevron-right" />}
+            onPress={() => router.push('/(auth)/test-history')}
           />
           <List.Item
             title="Settings"

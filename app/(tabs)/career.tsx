@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { careerPathsData } from '@/data/careerPathsData';
+import { getTests } from '@/services/testService';
+import { useRouter } from 'expo-router';
 
-export default function CareerScreen() {
+export default function TestScreen() {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [tests, setTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const data = await getTests();
+        setTests(data);
+      } catch (error) {
+        // handle error
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTests();
+  }, []);
 
   const toggleExpand = (id: string) => {
     if (expandedItem === id) {
@@ -18,9 +36,9 @@ export default function CareerScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.pageTitle}>Lộ trình hướng nghiệp</Text>
+        <Text style={styles.pageTitle}>Các bài test tâm lý</Text>
         <Text style={styles.pageSubtitle}>
-          Khám phá nghề nghiệp phù hợp dựa trên tính cách và sở thích của bạn
+          Khám phá các bài test tâm lý để hiểu rõ hơn về bản thân bạn
         </Text>
       </View>
 
@@ -31,57 +49,49 @@ export default function CareerScreen() {
         />
         <View style={styles.introTextContainer}>
           <Text style={styles.introText}>
-            Mỗi người có một tính cách và sở thích riêng, từ đó dẫn đến những lựa chọn nghề nghiệp phù hợp khác nhau. 
-            Hãy khám phá các nhóm tính cách dưới đây để tìm ra hướng đi phù hợp nhất với bạn.
+            Thực hiện các bài test tâm lý để khám phá tính cách, sở thích và định hướng nghề nghiệp phù hợp với bạn.
           </Text>
         </View>
       </View>
 
       <View style={styles.careerPathsContainer}>
-        {careerPathsData.map((path) => (
-          <View key={path.id} style={styles.careerPathCard}>
-            <TouchableOpacity 
-              style={styles.careerPathHeader}
-              onPress={() => toggleExpand(path.id)}
-            >
-              <View style={styles.careerPathTitleContainer}>
-                <View style={[styles.careerPathIcon, { backgroundColor: path.color }]}>
-                  <Text style={styles.careerPathIconText}>{path.icon}</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 40 }} />
+        ) : (
+          tests.map((test) => (
+            <View key={test._id} style={styles.careerPathCard}>
+              <TouchableOpacity 
+                style={styles.careerPathHeader}
+                onPress={() => toggleExpand(test._id)}
+              >
+                <View style={styles.careerPathTitleContainer}>
+                  <View style={[styles.careerPathIcon, { backgroundColor: Colors.secondary }]}> {/* You can randomize or map color/icon if needed */}
+                    <Text style={styles.careerPathIconText}>📝</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.careerPathTitle}>{test.name}</Text>
+                    <Text style={styles.careerPathSubtitle}>{test.type}</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.careerPathTitle}>{path.title}</Text>
-                  <Text style={styles.careerPathSubtitle}>{path.subtitle}</Text>
+                <ChevronRight 
+                  size={20} 
+                  color={Colors.text} 
+                  style={{ 
+                    transform: [{ rotate: expandedItem === test._id ? '90deg' : '0deg' }],
+                  }}
+                />
+              </TouchableOpacity>
+              {expandedItem === test._id && (
+                <View style={styles.careerPathContent}>
+                  <Text style={styles.careerPathDescription}>{test.description}</Text>
+                  <TouchableOpacity style={styles.learnMoreButton} onPress={() => router.push({ pathname: '/test-detail', params: { id: test._id } })}>
+                    <Text style={styles.learnMoreButtonText}>Làm bài test</Text>
+                  </TouchableOpacity>
                 </View>
-              </View>
-              <ChevronRight 
-                size={20} 
-                color={Colors.text} 
-                style={{ 
-                  transform: [{ rotate: expandedItem === path.id ? '90deg' : '0deg' }],
-                }}
-              />
-            </TouchableOpacity>
-            
-            {expandedItem === path.id && (
-              <View style={styles.careerPathContent}>
-                <Text style={styles.careerPathDescription}>{path.description}</Text>
-                
-                <Text style={styles.suitableCareersTitle}>Ngành nghề phù hợp:</Text>
-                <View style={styles.suitableCareersContainer}>
-                  {path.careers.map((career, index) => (
-                    <View key={index} style={styles.careerItem}>
-                      <Text style={styles.careerItemText}>{career}</Text>
-                    </View>
-                  ))}
-                </View>
-                
-                <TouchableOpacity style={styles.learnMoreButton}>
-                  <Text style={styles.learnMoreButtonText}>Khám phá chi tiết</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
+              )}
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
