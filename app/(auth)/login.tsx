@@ -130,8 +130,12 @@ export default function LoginScreen() {
                   />
                   <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
                     {showPassword ?
-                      <EyeOff size={20} color={Colors.textLight} /> :
-                      <Eye size={20} color={Colors.textLight} />
+                      <View>
+                        <EyeOff size={20} color={Colors.textLight} />
+                      </View> :
+                      <View>
+                        <Eye size={20} color={Colors.textLight} />
+                      </View>
                     }
                   </TouchableOpacity>
                 </View>

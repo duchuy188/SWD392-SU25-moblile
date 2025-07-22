@@ -79,6 +79,11 @@ export const authApi = {
     const response = await api.post('/api/auth/reset-password', { email, resetToken, newPassword });
     return response.data;
   },
+
+  updateUser: async (data: { fullName: string; phone: string; address: string; profilePicture: string }) => {
+    const response = await api.put('/api/auth/update', data);
+    return response.data;
+  },
 };
 
 export default api;
