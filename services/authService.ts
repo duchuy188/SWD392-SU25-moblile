@@ -36,9 +36,20 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     const errorMessage = (error.response?.data as any)?.error || 'Đã có lỗi xảy ra';
-    Alert.alert('Thông báo', errorMessage);
+    Alert.alert('Thông báo', errorMessage, [
+      {
+        text: 'OK',
+        onPress: async () => {
+          if (error.response?.status === 401) {
+            // Chuyển sang trang đăng nhập nếu hết token
+            const router = require('expo-router').useRouter();
+            router.replace('/login');
+          }
+        },
+      },
+    ]);
     return Promise.reject(error.response?.data);
   }
 );

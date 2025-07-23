@@ -1,8 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
-export default function Avatar({ email }: { email: string }) {
+export default function Avatar({ email, profilePicture }: { email: string, profilePicture?: string }) {
   const firstChar = email?.charAt(0)?.toUpperCase() || '?';
+  if (profilePicture) {
+    return (
+      <View style={styles.avatar}>
+        <Image source={{ uri: profilePicture }} style={styles.avatarImage} />
+      </View>
+    );
+  }
   return (
     <View style={styles.avatar}>
       <Text style={styles.avatarText}>{firstChar}</Text>
@@ -23,5 +30,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  avatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    resizeMode: 'cover',
   },
 }); 

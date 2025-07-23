@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, View, Text, Modal, StyleSheet } from 'react-native';
 import Avatar from './Avatar';
 import Colors from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
 type UserMenuProps = {
   user: any;
@@ -18,29 +19,13 @@ export default function UserMenu({
   onLogout,
   onProfile,
 }: UserMenuProps) {
+  const router = useRouter();
   if (!user) return null;
   return (
     <>
-      <Pressable onPress={() => setModalVisible(true)}>
-        <Avatar email={user.email} />
+      <Pressable onPress={() => router.push('/(tabs)/contact')}>
+        <Avatar email={user.email} profilePicture={user.profilePicture} />
       </Pressable>
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-          <View style={styles.menuContainer}>
-            <Pressable style={styles.menuItem} onPress={onProfile}>
-              <Text style={styles.menuText}>Profile</Text>
-            </Pressable>
-            <Pressable style={styles.menuItem} onPress={onLogout}>
-              <Text style={[styles.menuText, { color: Colors.error }]}>Đăng xuất</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
     </>
   );
 }
