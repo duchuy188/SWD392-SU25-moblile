@@ -55,7 +55,9 @@ export default function LoginScreen() {
       const response = await authApi.login(email, password);
       await AsyncStorage.setItem(TOKEN_KEY, response.accessToken);
       await AsyncStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      // Lấy user mới nhất từ API (có profilePicture)
+      const userProfile = await authApi.getCurrentUser();
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userProfile.user));
       setIsLoading(false);
       Alert.alert('Đăng nhập thành công!', 'Chào mừng bạn trở lại', [
         {

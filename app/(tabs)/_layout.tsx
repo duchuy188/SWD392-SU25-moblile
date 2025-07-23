@@ -48,27 +48,9 @@ export default function TabLayout() {
     router.push('/profile'); // Điều hướng đến màn profile
   };
 
-  const renderHeaderRight = () =>
-    user ? (
-      <UserMenu
-        user={user}
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        onLogout={handleLogout}
-        onProfile={handleProfile}
-      />
-    ) : (
-      <Link href="/login" asChild>
-        <TouchableOpacity style={styles.loginButton}>
-          <LogIn size={18} color={Colors.primary} />
-          <Text style={styles.loginButtonText}>Đăng nhập</Text>
-        </TouchableOpacity>
-      </Link>
-    );
-
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.inactive,
         tabBarStyle: styles.tabBar,
@@ -76,9 +58,28 @@ export default function TabLayout() {
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
         headerTintColor: Colors.primary,
-        headerRight: renderHeaderRight,
+        headerRight: () => {
+          // Ẩn avatar khi ở tab 'contact'
+          if (route.name === 'contact') return null;
+          return user ? (
+            <UserMenu
+              user={user}
+              modalVisible={modalVisible}
+              setModalVisible={setModalVisible}
+              onLogout={handleLogout}
+              onProfile={handleProfile}
+            />
+          ) : (
+            <Link href="/login" asChild>
+              <TouchableOpacity style={styles.loginButton}>
+                <LogIn size={18} color={Colors.primary} />
+                <Text style={styles.loginButtonText}>Đăng nhập</Text>
+              </TouchableOpacity>
+            </Link>
+          );
+        },
         headerRightContainerStyle: styles.headerRightContainer,
-      }}
+      })}
     >
       <Tabs.Screen
         name="index"
@@ -122,10 +123,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: 'Liên hệ',
+          title: 'Profile', // Đổi tên tab
           tabBarIcon: ({ color, size }) => (
             <Contact size={size} color={color} />
           ),
+          headerTitle: 'My Profile', // Đổi tiêu đề header
         }}
       />
     </Tabs>

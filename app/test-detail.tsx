@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   questionCard: {
-    backgroundColor: '#E1F5FE',
+    backgroundColor: '#fff', // đổi sang màu trắng
     marginHorizontal: 18,
     borderRadius: 16,
     paddingVertical: 80,
@@ -353,4 +353,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-}); 
+});
