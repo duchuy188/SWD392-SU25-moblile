@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, Dimensions, Modal, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, ScrollView, Text, Modal, TouchableOpacity, Alert } from 'react-native';
 import { Card, Avatar, Button, TextInput } from 'react-native-paper';
+import * as ImagePicker from 'expo-image-picker';
 import { authApi } from '@/services/authService';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -23,20 +24,22 @@ interface User {
   profilePicture: string;
 }
 
+
 export default function ProfileInfoScreen() {
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
     address: '',
-    profilePicture: '',
   });
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const router = useRouter();
-  const windowHeight = Dimensions.get('window').height;
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
-  const [tempAvatar, setTempAvatar] = useState(form.profilePicture);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,8 +50,8 @@ export default function ProfileInfoScreen() {
           fullName: data.user.fullName || '',
           phone: data.user.phone || '',
           address: data.user.address || '',
-          profilePicture: data.user.profilePicture || '',
         });
+        setPreviewUrl(''); // Reset preview khi load data
       } catch (error) {
         setUser(null);
       } finally {
@@ -56,32 +59,137 @@ export default function ProfileInfoScreen() {
       }
     };
     fetchProfile();
-  }, [editMode]);
+  }, []);
+
+
+
+  // Chọn ảnh từ thư viện
+  const pickImageFromLibrary = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Thông báo', 'Cần cấp quyền truy cập thư viện ảnh để thay đổi ảnh đại diện');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.4, // giảm quality để file nhỏ hơn 2MB
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        setSelectedFile({
+          uri: asset.uri,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+        setPreviewUrl(asset.uri);
+        setAvatarModalVisible(false);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Lỗi', 'Có lỗi xảy ra khi chọn ảnh');
+    }
+  };
+
+  // Chụp ảnh từ camera
+  const takePhotoWithCamera = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Thông báo', 'Cần cấp quyền truy cập camera để chụp ảnh đại diện');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.4, // giảm quality để file nhỏ hơn 2MB
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        setSelectedFile({
+          uri: asset.uri,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+        setPreviewUrl(asset.uri);
+        setAvatarModalVisible(false);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Lỗi', 'Có lỗi xảy ra khi chụp ảnh');
+    }
+  };
 
   const handleBack = () => router.back();
   const handleEdit = () => setEditMode(true);
-  const handleCancel = () => setEditMode(false);
+  const handleCancel = () => {
+    setEditMode(false);
+    setSelectedFile(null);
+    setPreviewUrl('');
+    // Reset form về dữ liệu gốc
+    if (user) {
+      setForm({
+        fullName: user.fullName || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+    }
+  };
   const handleChange = (key: string, value: string) => setForm({ ...form, [key]: value });
+  
   const handleSave = async () => {
     setLoading(true);
+    setUploadingImage(true);
     try {
-      console.log('Trước khi gửi lên API:', form.profilePicture);
-      await authApi.updateUser(form);
-      const data = await authApi.getCurrentUser();
-      console.log('Sau khi lấy từ API:', data.user.profilePicture);
-      setUser(data.user);
-      setForm({
-        fullName: data.user.fullName || '',
-        phone: data.user.phone || '',
-        address: data.user.address || '',
-        profilePicture: data.user.profilePicture || '',
-      });
-      // router.back(); 
-      router.replace('/(auth)/profile-info'); // Quay về đúng trang profile-info
-    } catch (e) {
-      alert('Cập nhật thông tin thất bại. Vui lòng thử lại!');
+      let updatedUserData;
+      if (selectedFile) {
+        // Nếu có ảnh mới, gửi FormData
+        const formData = new FormData();
+        formData.append('fullName', form.fullName);
+        formData.append('phone', form.phone);
+        formData.append('address', form.address);
+        formData.append('profilePicture', {
+          uri: selectedFile.uri,
+          type: selectedFile.type || 'image/jpeg',
+          name: selectedFile.name || 'avatar.jpg',
+        } as any);
+        updatedUserData = await authApi.updateUser(formData);
+      } else {
+        // Không có ảnh mới, gửi JSON bình thường, truyền luôn profilePicture hiện tại
+        const updateData = {
+          fullName: form.fullName,
+          phone: form.phone,
+          address: form.address,
+          profilePicture: user?.profilePicture || '',
+        };
+        updatedUserData = await authApi.updateUser(updateData);
+      }
+      if (updatedUserData && updatedUserData.user) {
+        setUser(updatedUserData.user);
+        setForm({
+          fullName: updatedUserData.user.fullName || '',
+          phone: updatedUserData.user.phone || '',
+          address: updatedUserData.user.address || '',
+        });
+      }
+      setEditMode(false);
+      setSelectedFile(null);
+      setPreviewUrl('');
+      Alert.alert('Thành công', 'Cập nhật thông tin thành công!');
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Lỗi', 'Cập nhật thông tin thất bại. Vui lòng thử lại!');
     } finally {
       setLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -112,6 +220,13 @@ export default function ProfileInfoScreen() {
     </View>
   );
 
+  // Hiển thị ảnh hiện tại (có thể là preview hoặc ảnh từ server)
+  const getCurrentImageUri = () => {
+    if (previewUrl) return previewUrl; // Ưu tiên ảnh preview
+    if (user?.profilePicture) return user.profilePicture; // Ảnh từ server
+    return null;
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -132,7 +247,7 @@ export default function ProfileInfoScreen() {
             shadowRadius: 18,
             elevation: 8,
             zIndex: 20,
-            marginBottom: -60, // Để card avatar "đè" lên card thông tin
+            marginBottom: -60,
             paddingTop: 32,
           }}>
             <TouchableOpacity
@@ -153,10 +268,10 @@ export default function ProfileInfoScreen() {
                 elevation: 4,
               }}
             >
-              {form.profilePicture ? (
+              {getCurrentImageUri() ? (
                 <Avatar.Image
                   size={70}
-                  source={{ uri: form.profilePicture }}
+                  source={{ uri: getCurrentImageUri()! }}
                   style={{ backgroundColor: '#E9E6F7', borderRadius: 14 }}
                 />
               ) : (
@@ -167,6 +282,7 @@ export default function ProfileInfoScreen() {
                   labelStyle={{ color: PRIMARY }}
                 />
               )}
+              
               {/* Hiệu ứng overlay khi edit */}
               {editMode && (
                 <View style={{
@@ -179,8 +295,22 @@ export default function ProfileInfoScreen() {
                   <Feather name="edit-2" size={22} color={PRIMARY} />
                 </View>
               )}
+              
+              {/* Loading indicator khi đang upload */}
+              {uploadingImage && (
+                <View style={{
+                  position: 'absolute',
+                  left: 0, right: 0, top: 0, bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  borderRadius: 18,
+                  justifyContent: 'center', alignItems: 'center',
+                }}>
+                  <Text style={{ color: '#fff', fontSize: 12 }}>Đang tải...</Text>
+                </View>
+              )}
             </TouchableOpacity>
-            {/* Modal nhập link ảnh */}
+
+            {/* Modal chọn cách upload ảnh */}
             <Modal
               visible={avatarModalVisible}
               transparent
@@ -189,30 +319,47 @@ export default function ProfileInfoScreen() {
             >
               <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
                 <View style={{ backgroundColor: '#fff', borderRadius: 18, padding: 24, width: '80%', alignItems: 'center' }}>
-                  <Text style={{ fontWeight: 'bold', fontSize: 17, color: PRIMARY, marginBottom: 12 }}>Đổi ảnh đại diện</Text>
-                  {/* Preview ảnh nếu có link */}
-                  {tempAvatar ? (
-                    <Avatar.Image
-                      size={70}
-                      source={{ uri: tempAvatar }}
-                      style={{ backgroundColor: '#E9E6F7', borderRadius: 14, marginBottom: 10 }}
-                    />
-                  ) : null}
-                  <RNTextInput
-                    value={tempAvatar}
-                    onChangeText={setTempAvatar}
-                    placeholder="Dán link ảnh..."
-                    style={{ borderWidth: 1, borderColor: BORDER, borderRadius: 10, width: '100%', padding: 10, marginBottom: 16 }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <Button mode="outlined" onPress={() => setAvatarModalVisible(false)} style={{ borderRadius: 10, minWidth: 70 }} labelStyle={{ color: PRIMARY }}>Huỷ</Button>
-                    <Button mode="contained" onPress={() => { setForm(f => ({ ...f, profilePicture: tempAvatar })); setAvatarModalVisible(false); }} style={{ borderRadius: 10, minWidth: 70, backgroundColor: PRIMARY }} labelStyle={{ color: '#fff' }}>Lưu</Button>
+                  <Text style={{ fontWeight: 'bold', fontSize: 17, color: PRIMARY, marginBottom: 20 }}>
+                    Đổi ảnh đại diện
+                  </Text>
+                  
+                  <View style={{ width: '100%', gap: 12 }}>
+                    <Button
+                      mode="contained"
+                      onPress={pickImageFromLibrary}
+                      style={{ borderRadius: 12, backgroundColor: PRIMARY }}
+                      labelStyle={{ color: '#fff', paddingVertical: 8 }}
+                      icon={() => <Feather name="image" size={18} color="#fff" />}
+                      disabled={uploadingImage}
+                    >
+                      Chọn từ thư viện
+                    </Button>
+                    
+                    <Button
+                      mode="outlined"
+                      onPress={takePhotoWithCamera}
+                      style={{ borderRadius: 12, borderColor: PRIMARY }}
+                      labelStyle={{ color: PRIMARY, paddingVertical: 8 }}
+                      icon={() => <Feather name="camera" size={18} color={PRIMARY} />}
+                      disabled={uploadingImage}
+                    >
+                      Chụp ảnh mới
+                    </Button>
+                    
+                    <Button
+                      mode="text"
+                      onPress={() => setAvatarModalVisible(false)}
+                      style={{ borderRadius: 12, marginTop: 8 }}
+                      labelStyle={{ color: SUBTEXT }}
+                      disabled={uploadingImage}
+                    >
+                      Hủy
+                    </Button>
                   </View>
                 </View>
               </View>
             </Modal>
+
             {/* Tên user trên card avatar */}
             <Text style={{
               fontSize: 26,
@@ -224,6 +371,7 @@ export default function ProfileInfoScreen() {
             }}>
               {user.fullName}
             </Text>
+            
             {/* Nút edit nổi góc phải card avatar */}
             {!editMode && (
               <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 30 }}>
@@ -250,6 +398,7 @@ export default function ProfileInfoScreen() {
               </View>
             )}
           </View>
+
           {/* Card thông tin */}
           <View style={{
             backgroundColor: CARD_BG,
@@ -269,8 +418,8 @@ export default function ProfileInfoScreen() {
             {!editMode ? (
               <View style={{ width: '100%', marginTop: 8 }}>
                 <ProfileField icon="mail" label="Email" value={user.email} />
-                <ProfileField icon="phone" label="Số điện thoại" value={user.phone} />
-                <ProfileField icon="map-pin" label="Địa chỉ" value={user.address} />
+                <ProfileField icon="phone" label="Số điện thoại" value={user.phone || '—'} />
+                <ProfileField icon="map-pin" label="Địa chỉ" value={user.address || '—'} />
                 <ProfileField icon="user" label="Vai trò" value={user.role} isLast />
               </View>
             ) : (
@@ -323,13 +472,14 @@ export default function ProfileInfoScreen() {
                   }}
                   theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
                 />
-                {/* Không còn input Link ảnh đại diện */}
+                
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
                   <Button
                     mode="outlined"
                     onPress={handleCancel}
                     style={{ borderRadius: 16, minWidth: 70, borderColor: PRIMARY, borderWidth: 1.5 }}
                     labelStyle={{ fontWeight: 'bold', color: PRIMARY }}
+                    disabled={uploadingImage}
                   >
                     Huỷ
                   </Button>
@@ -338,6 +488,8 @@ export default function ProfileInfoScreen() {
                     onPress={handleSave}
                     style={{ borderRadius: 16, minWidth: 70, backgroundColor: PRIMARY }}
                     labelStyle={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}
+                    disabled={uploadingImage}
+                    loading={uploadingImage}
                   >
                     Lưu
                   </Button>
@@ -347,6 +499,7 @@ export default function ProfileInfoScreen() {
           </View>
         </View>
       </ScrollView>
+      
       {/* Nút quay lại luôn cố định ở cạnh dưới màn hình */}
       <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center', zIndex: 100 }}>
         <Button

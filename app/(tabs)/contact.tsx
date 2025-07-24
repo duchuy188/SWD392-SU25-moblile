@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, ImageBackground, Text } from 'react-native';
 import { Avatar, Card, List, Switch, Button, Divider, useTheme } from 'react-native-paper';
 import { LogOut, User, Settings, HelpCircle, Moon, Info, FileText } from 'lucide-react-native';
 import { authApi } from '@/services/authService';
 import { getMyTestResults } from '@/services/testService';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
@@ -29,19 +29,23 @@ export default function ProfileScreen() {
   const theme = useTheme();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await authApi.getCurrentUser();
-        setUser(data.user);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchProfile = async () => {
+        try {
+          const data = await authApi.getCurrentUser();
+          if (isActive) setUser(data.user);
+        } catch (error) {
+          if (isActive) setUser(null);
+        } finally {
+          if (isActive) setLoading(false);
+        }
+      };
+      fetchProfile();
+      return () => { isActive = false; };
+    }, [])
+  );
 
   const handleShowTestHistory = async () => {
     setShowTestHistory(true);

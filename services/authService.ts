@@ -91,9 +91,20 @@ export const authApi = {
     return response.data;
   },
 
-  updateUser: async (data: { fullName: string; phone: string; address: string; profilePicture: string }) => {
-    const response = await api.put('/api/auth/update', data);
-    return response.data;
+  updateUser: async (data: any) => {
+    // Nếu là FormData (upload file)
+    if (data instanceof FormData) {
+      const response = await api.put('/api/auth/update', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // Gửi JSON như cũ
+      const response = await api.put('/api/auth/update', data);
+      return response.data;
+    }
   },
 };
 
