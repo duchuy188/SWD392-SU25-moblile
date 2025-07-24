@@ -83,7 +83,7 @@ export default function ProfileScreen() {
       <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Card style={styles.profileCard}>
           <List.Item
-            title={<Text>Test History</Text>}
+            title={<Text>Lịch sử kiểm tra</Text>}
             left={() => <FileText color={theme.colors.primary} size={22} />}
             right={() => null}
           />
@@ -93,7 +93,7 @@ export default function ProfileScreen() {
           <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Đang tải...</Text>} /></Card>
         ) : (
           testHistory.length === 0 ? (
-            <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Không có lịch sử test.</Text>} /></Card>
+            <Card style={{ margin: 32, padding: 32 }}><List.Item title={<Text>Không có lịch sử kiểm tra.</Text>} /></Card>
           ) : (
             testHistory.map((item, idx) => (
               <Card key={idx} style={{ margin: 12, padding: 12 }}>
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
         <View style={styles.infoContainer}>
           <List.Item
             title={user.fullName}
-            description={user.jobTitle || 'Web Designer'}
+            description={user.jobTitle}
             titleStyle={styles.name}
             descriptionStyle={styles.job}
             left={() => null}
@@ -140,48 +140,41 @@ export default function ProfileScreen() {
 
       <Card style={styles.menuCard}>
         <List.Section>
-          <List.Subheader style={styles.subheader}>Profile</List.Subheader>
+          <List.Subheader style={styles.subheader}>Thông tin cá nhân</List.Subheader>
           <List.Item
-            title="Personal Data"
+            title="Dữ liệu cá nhân"
             left={() => <User color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => router.push('/(auth)/profile-info')}
           />
           <List.Item
-            title="Test History"
+            title="Lịch sử kiểm tra"
             left={() => <FileText color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => router.push('/(auth)/test-history')}
           />
           <List.Item
-            title="Settings"
+            title="Cài đặt"
             left={() => <Settings color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => {}}
           />
           <Divider />
-          <List.Subheader style={styles.subheader}>Support</List.Subheader>
+          <List.Subheader style={styles.subheader}>Hỗ trợ</List.Subheader>
           <List.Item
-            title="Help Center"
+            title="Trung tâm trợ giúp"
             left={() => <HelpCircle color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => {}}
           />
           <List.Item
-            title="Dark Mode"
-            left={() => <Moon color={theme.colors.primary} size={22} />}
-            right={() => (
-              <Switch value={darkMode} onValueChange={setDarkMode} color={theme.colors.primary} />
-            )}
-          />
-          <List.Item
-            title="Info App"
+            title="Thông tin ứng dụng"
             left={() => <Info color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => {}}
           />
           <List.Item
-            title="Term and Conditions"
+            title="Điều khoản và điều kiện"
             left={() => <FileText color={theme.colors.primary} size={22} />}
             right={() => <List.Icon icon="chevron-right" />}
             onPress={() => {}}
@@ -196,7 +189,7 @@ export default function ProfileScreen() {
         labelStyle={styles.logoutLabel}
         onPress={handleLogout}
       >
-        Logout
+        Đăng xuất
       </Button>
     </ScrollView>
   );

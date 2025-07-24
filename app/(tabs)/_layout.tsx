@@ -123,11 +123,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: 'Profile', // Đổi tên tab
+          title: 'Thông tin', // Đổi tên tab
           tabBarIcon: ({ color, size }) => (
             <Contact size={size} color={color} />
           ),
-          headerTitle: 'My Profile', // Đổi tiêu đề header
+          headerTitle: 'Thông tin cá nhân', // Đổi tiêu đề header
         }}
       />
     </Tabs>

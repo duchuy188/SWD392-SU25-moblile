@@ -292,7 +292,7 @@ export default function ProfileInfoScreen() {
                   borderRadius: 18,
                   justifyContent: 'center', alignItems: 'center',
                 }}>
-                  <Feather name="edit-2" size={22} color={PRIMARY} />
+                  <Feather name="camera" size={22} color={PRIMARY} />
                 </View>
               )}
               
@@ -374,28 +374,13 @@ export default function ProfileInfoScreen() {
             
             {/* Nút edit nổi góc phải card avatar */}
             {!editMode && (
-              <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 30 }}>
-                <Button
-                  onPress={handleEdit}
-                  style={{
-                    minWidth: 0,
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: '#fff',
-                    elevation: 2,
-                    borderWidth: 1,
-                    borderColor: BORDER,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: 0,
-                  }}
-                  contentStyle={{ padding: 0, justifyContent: 'center', alignItems: 'center' }}
-                  labelStyle={{ padding: 0 }}
-                >
-                  <Feather name="edit-2" size={18} color={PRIMARY} />
-                </Button>
-              </View>
+              <TouchableOpacity
+                onPress={handleEdit}
+                style={{ position: 'absolute', top: 12, right: 16, zIndex: 30, padding: 6 }}
+                activeOpacity={0.7}
+              >
+                <Feather name="edit-2" size={22} color={PRIMARY} />
+              </TouchableOpacity>
             )}
           </View>
 
