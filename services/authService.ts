@@ -36,22 +36,44 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    const errorMessage = (error.response?.data as any)?.error || 'Đã có lỗi xảy ra';
-    Alert.alert('Thông báo', errorMessage, [
-      {
-        text: 'OK',
-        onPress: async () => {
-          if (error.response?.status === 401) {
-            // Chuyển sang trang đăng nhập nếu hết token
-            const router = require('expo-router').useRouter();
-            router.replace('/login');
-          }
-        },
-      },
-    ]);
-    return Promise.reject(error.response?.data);
-  }
+    async (error: AxiosError) => {
+        const errorMessage = (error.response?.data as any)?.error || 'Đã có lỗi xảy ra';
+        const status = error.response?.status;
+        // Các thông báo lỗi liên quan đến đổi mật khẩu KHÔNG logout
+        const passwordErrors = [
+            'Mật khẩu hiện tại không đúng',
+            'Mật khẩu hiện tại sai',
+            'Sai mật khẩu',
+            'Current password is incorrect',
+            'Incorrect current password',
+        ];
+        Alert.alert('Thông báo', errorMessage, [
+            {
+                text: 'OK',
+                onPress: async () => {
+                    if (status === 401) {
+                        // Nếu là lỗi đổi mật khẩu thì KHÔNG logout
+                        if (passwordErrors.some(msg => errorMessage.includes(msg))) {
+                            // Chỉ alert, không logout
+                            return;
+                        }
+                        // Nếu là lỗi hết hạn token hoặc các lỗi xác thực khác thì logout
+                        if (
+                            errorMessage.includes('Token hết hạn') ||
+                            errorMessage.includes('jwt expired') ||
+                            errorMessage.includes('Không tìm thấy token') ||
+                            errorMessage.includes('Unauthorized')
+                        ) {
+                            const router = require('expo-router').useRouter();
+                            // Chuyển về login
+                            router.replace('/login');
+                        }
+                    }
+                },
+            },
+        ]);
+        return Promise.reject(error.response?.data);
+    }
 );
 
 export const authApi = {
@@ -105,6 +127,13 @@ export const authApi = {
       const response = await api.put('/api/auth/update', data);
       return response.data;
     }
+  },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.put('/api/auth/change-password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
   },
 };
 

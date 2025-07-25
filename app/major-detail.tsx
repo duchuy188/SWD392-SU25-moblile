@@ -160,6 +160,14 @@ export default function MajorDetailScreen() {
           <Text style={styles.description}>{major.description}</Text>
         </View>
 
+        {/* Cơ sở đào tạo */}
+        {major.availableAt && major.availableAt.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Cơ sở đào tạo</Text>
+            <Text>{major.availableAt.join(', ')}</Text>
+          </View>
+        )}
+
         {/* Chương trình đào tạo */}
         {major.programStructure && (
           <View style={styles.descSection}>
@@ -292,13 +300,7 @@ export default function MajorDetailScreen() {
           </View>
         )}
 
-        {/* Cơ sở đào tạo */}
-        {major.availableAt && major.availableAt.length > 0 && (
-          <View style={styles.descSection}>
-            <Text style={styles.descTitle}>Cơ sở đào tạo</Text>
-            <Text>{major.availableAt.join(', ')}</Text>
-          </View>
-        )}
+
 
         {/* Đối tác quốc tế */}
         {major.internationalPartners && major.internationalPartners.length > 0 && (
