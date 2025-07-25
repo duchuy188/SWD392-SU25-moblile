@@ -130,7 +130,7 @@ export default function ProfileScreen() {
         <View style={styles.infoContainer}>
           <List.Item
             title={user.fullName}
-            description={user.jobTitle}
+            description={user.role === 'student' ? 'Học Sinh' : user.role}
             titleStyle={styles.name}
             descriptionStyle={styles.job}
             left={() => null}

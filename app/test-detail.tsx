@@ -135,7 +135,7 @@ export default function TestDetailScreen() {
         onPress={handleNext}
         disabled={submitting}
       >
-        <Text style={styles.nextBtnText}>{current === total-1 ? (submitting ? 'Đang nộp...' : 'Nộp bài test') : 'Next'}</Text>
+        <Text style={styles.nextBtnText}>{current === total-1 ? (submitting ? 'Đang nộp...' : 'Nộp bài test') : 'Tiếp theo'}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -204,11 +204,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', // đổi sang màu trắng
     marginHorizontal: 18,
     borderRadius: 16,
-    paddingVertical: 80,
+    paddingVertical: 32, // giảm padding dọc
     paddingHorizontal: 10,
     marginBottom: 40, // vừa phải
     width: '94%',
-    height: '20%',
+    // height: '20%', // bỏ height cố định
+    minHeight: 80, // đảm bảo không quá nhỏ
+    justifyContent: 'center',
     alignSelf: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -222,6 +224,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     textAlign: 'center',
+    flexWrap: 'wrap', // cho phép xuống dòng
+    width: '100%',
   },
   optionsWrap: {
     marginHorizontal: 18,

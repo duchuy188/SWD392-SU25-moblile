@@ -146,6 +146,19 @@ export default function ProfileInfoScreen() {
   const handleChange = (key: string, value: string) => setForm({ ...form, [key]: value });
   
   const handleSave = async () => {
+    // Kiểm tra dữ liệu
+    if (!form.fullName.trim()) {
+      Alert.alert('Lỗi', 'Họ và tên không được để trống!');
+      return;
+    }
+    if (!form.address.trim()) {
+      Alert.alert('Lỗi', 'Địa chỉ không được để trống!');
+      return;
+    }
+    if (!/^\d{10}$/.test(form.phone)) {
+      Alert.alert('Lỗi', 'Số điện thoại phải gồm 10 chữ số và không chứa ký tự chữ!');
+      return;
+    }
     setLoading(true);
     setUploadingImage(true);
     try {
@@ -405,7 +418,7 @@ export default function ProfileInfoScreen() {
                 <ProfileField icon="mail" label="Email" value={user.email} />
                 <ProfileField icon="phone" label="Số điện thoại" value={user.phone || '—'} />
                 <ProfileField icon="map-pin" label="Địa chỉ" value={user.address || '—'} />
-                <ProfileField icon="user" label="Vai trò" value={user.role} isLast />
+                <ProfileField icon="user" label="Vai trò" value={user.role === 'student' ? 'Học Sinh' : user.role} isLast />
               </View>
             ) : (
               <View style={{ width: '100%', marginTop: 0 }}>

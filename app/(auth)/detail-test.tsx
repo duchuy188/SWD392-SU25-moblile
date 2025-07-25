@@ -140,7 +140,7 @@ export default function DetailTestScreen() {
   };
 
   return (
-    <View style={{flex:1, backgroundColor:'#F9FAFB', justifyContent:'center', alignItems:'center'}}>
+    <View style={{flex:1, backgroundColor:'#F9FAFB'}}>
       {/* Floating back button top left */}
       <TouchableOpacity
         onPress={() => router.back()}
@@ -148,31 +148,37 @@ export default function DetailTestScreen() {
       >
         <ArrowLeft color={'#fff'} size={22} />
       </TouchableOpacity>
-      <Card style={{borderRadius:28, padding:32, width:'96%', elevation:4, backgroundColor:'#F6F3FF', alignItems:'center', justifyContent:'center', minHeight:'80%', maxWidth:480}}>
-        <Text style={{fontWeight:'bold', fontSize:26, color:theme.colors.primary, textAlign:'center', marginBottom:16}}>Kết quả của bạn</Text>
-        <View style={{alignItems:'center', marginBottom:16}}>
-          <View style={{
-            backgroundColor: result.testType === 'PERSONALITY' ? '#E3F2FD' : '#FFE0B2',
-            borderRadius:12,
-            paddingHorizontal:36,
-            paddingVertical:12,
-            marginBottom:10,
-            elevation:2
-          }}>
-            <Text style={{
-              fontWeight:'bold',
-              fontSize:24,
-              color: result.testType === 'PERSONALITY' ? '#1976D2' : '#F9A825'
-            }}>{result.result}</Text>
+      <ScrollView
+        contentContainerStyle={{alignItems:'center', justifyContent:'center', minHeight:'80%', paddingVertical:36}}
+        style={{width:'100%'}}
+        showsVerticalScrollIndicator={false}
+      >
+        <Card style={{borderRadius:28, padding:32, width:'96%', elevation:4, backgroundColor:'#F6F3FF', alignItems:'center', justifyContent:'center', maxWidth:480}}>
+          <Text style={{fontWeight:'bold', fontSize:26, color:theme.colors.primary, textAlign:'center', marginBottom:16}}>Kết quả của bạn</Text>
+          <View style={{alignItems:'center', marginBottom:16}}>
+            <View style={{
+              backgroundColor: result.testType === 'PERSONALITY' ? '#E3F2FD' : '#FFE0B2',
+              borderRadius:12,
+              paddingHorizontal:36,
+              paddingVertical:12,
+              marginBottom:10,
+              elevation:2
+            }}>
+              <Text style={{
+                fontWeight:'bold',
+                fontSize:24,
+                color: result.testType === 'PERSONALITY' ? '#1976D2' : '#F9A825'
+              }}>{result.result}</Text>
+            </View>
+            <Text style={{color:'#888', fontSize:17}}>{result.date ? new Date(result.date).toLocaleDateString() : ''}</Text>
           </View>
-          <Text style={{color:'#888', fontSize:17}}>{result.date ? new Date(result.date).toLocaleDateString() : ''}</Text>
-        </View>
-        <Text style={{fontWeight:'bold', fontSize:18, marginTop:18, marginBottom:8, color:theme.colors.primary, alignSelf:'flex-start'}}>Mô tả</Text>
-        <Text style={{color:'#444', fontSize:17, marginBottom:18, textAlign:'center', lineHeight:24}}>{result.description}</Text>
-        {renderScore()}
-        {renderMajors(result.recommendedMajors, 'Ngành đề xuất')}
-        {renderMajors(result.recommendedFPTMajors, 'Ngành FPT đề xuất')}
-      </Card>
+          <Text style={{fontWeight:'bold', fontSize:18, marginTop:18, marginBottom:8, color:theme.colors.primary, alignSelf:'flex-start'}}>Mô tả</Text>
+          <Text style={{color:'#444', fontSize:17, marginBottom:18, textAlign:'center', lineHeight:24}}>{result.description}</Text>
+          {renderScore()}
+          {renderMajors(result.recommendedMajors, 'Ngành đề xuất')}
+          {renderMajors(result.recommendedFPTMajors, 'Ngành FPT đề xuất')}
+        </Card>
+      </ScrollView>
     </View>
   );
 } 
