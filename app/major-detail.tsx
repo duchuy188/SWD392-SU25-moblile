@@ -18,6 +18,49 @@ type Major = {
     lastSem?: number;
   };
   description?: string;
+  programStructure?: {
+    preparation?: {
+      duration: string;
+      objectives?: string[];
+      courses?: string[];
+    };
+    basic?: {
+      duration: string;
+      objectives?: string[];
+      courses?: string[];
+    };
+    ojt?: {
+      duration: string;
+      objectives?: string[];
+    };
+    specialization?: {
+      duration: string;
+      objectives?: string[];
+      courses?: string[];
+    };
+    graduation?: {
+      duration: string;
+      objectives?: string[];
+      options?: string[];
+    };
+  };
+  careerProspects?: {
+    title: string;
+    description: string;
+  }[];
+  scholarships?: {
+    name: string;
+    description: string;
+    value: string;
+  }[];
+  admissionCriteria?: string;
+  requiredSkills?: string[];
+  availableAt?: string[];
+  internationalPartners?: {
+    country: string;
+    universities?: string[];
+  }[];
+  subjectCombinations?: string[];
 };
 
 export const unstable_settings = {
@@ -116,6 +159,167 @@ export default function MajorDetailScreen() {
           <View style={styles.descDivider} />
           <Text style={styles.description}>{major.description}</Text>
         </View>
+
+        {/* Chương trình đào tạo */}
+        {major.programStructure && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Chương trình đào tạo</Text>
+            <Text style={styles.description}>Tổng số tín chỉ: {major.totalCredits}</Text>
+            <View style={{marginTop: 12}}>
+              {/* Giai đoạn chuẩn bị */}
+              {major.programStructure.preparation && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="rocket-outline" size={22} color="#38BDF8" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn chuẩn bị</Text>
+                  </View>
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.preparation.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.preparation.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.preparation.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.preparation.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* Giai đoạn cơ bản */}
+              {major.programStructure.basic && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="book-outline" size={22} color="#8B5CF6" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn cơ bản</Text>
+                  </View>
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.basic.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.basic.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.basic.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.basic.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* Giai đoạn thực tập */}
+              {major.programStructure.ojt && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="briefcase-outline" size={22} color="#FACC15" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn thực tập</Text>
+                  </View>
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.ojt.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.ojt.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                </View>
+              )}
+              {/* Giai đoạn chuyên ngành */}
+              {major.programStructure.specialization && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="school-outline" size={22} color="#3B82F6" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn chuyên ngành</Text>
+                  </View>
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.specialization.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.specialization.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.specialization.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.specialization.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Cơ hội nghề nghiệp */}
+        {major.careerProspects && major.careerProspects.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Cơ hội nghề nghiệp</Text>
+            {major.careerProspects.map((item, idx) => (
+              <View key={idx} style={{marginBottom: 8}}>
+                <Text style={{fontWeight: 'bold'}}>{item.title}</Text>
+                <Text>{item.description}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Học bổng */}
+        {major.scholarships && major.scholarships.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Học bổng</Text>
+            {major.scholarships.map((item, idx) => (
+              <View key={idx} style={{marginBottom: 8}}>
+                <Text style={{fontWeight: 'bold'}}>{item.name}</Text>
+                <Text>{item.description}</Text>
+                <Text style={{color: '#3B82F6'}}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Tiêu chí tuyển sinh */}
+        {major.admissionCriteria && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Tiêu chí tuyển sinh</Text>
+            <Text>{major.admissionCriteria}</Text>
+          </View>
+        )}
+
+        {/* Kỹ năng cần thiết */}
+        {major.requiredSkills && major.requiredSkills.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Kỹ năng cần thiết</Text>
+            {major.requiredSkills.map((skill, idx) => (
+              <Text key={idx}>• {skill}</Text>
+            ))}
+          </View>
+        )}
+
+        {/* Cơ sở đào tạo */}
+        {major.availableAt && major.availableAt.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Cơ sở đào tạo</Text>
+            <Text>{major.availableAt.join(', ')}</Text>
+          </View>
+        )}
+
+        {/* Đối tác quốc tế */}
+        {major.internationalPartners && major.internationalPartners.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Đối tác quốc tế</Text>
+            {major.internationalPartners.map((item, idx) => (
+              <View key={idx} style={{marginBottom: 8}}>
+                <Text style={{fontWeight: 'bold'}}>{item.country}</Text>
+                <Text>{item.universities?.join(', ')}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Tổ hợp môn xét tuyển */}
+        {major.subjectCombinations && major.subjectCombinations.length > 0 && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>Tổ hợp môn xét tuyển</Text>
+            <Text>{major.subjectCombinations.join(', ')}</Text>
+          </View>
+        )}
       </ScrollView>
       <View style={styles.fabBackWrap}>
         <Ionicons
@@ -337,4 +541,62 @@ const styles = StyleSheet.create({
   fabBack: {
     alignSelf: 'center',
   },
-}); 
+  eduCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  eduHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  eduTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  eduDuration: {
+    fontSize: 13,
+    color: '#3B82F6',
+    marginBottom: 4,
+  },
+  eduLabel: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  eduObjective: {
+    fontSize: 13,
+    color: '#222',
+    marginLeft: 8,
+    marginBottom: 2,
+  },
+  eduCoursesWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 4,
+  },
+  eduCourse: {
+    backgroundColor: '#E0E7FF',
+    margin: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontSize: 12,
+    color: '#3730A3',
+  },
+  eduOption: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#EF4444',
+    fontWeight: '600',
+  },
+});
