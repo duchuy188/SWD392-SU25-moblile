@@ -36,44 +36,34 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-    async (error: AxiosError) => {
-        const errorMessage = (error.response?.data as any)?.error || 'Đã có lỗi xảy ra';
-        const status = error.response?.status;
-        // Các thông báo lỗi liên quan đến đổi mật khẩu KHÔNG logout
-        const passwordErrors = [
-            'Mật khẩu hiện tại không đúng',
-            'Mật khẩu hiện tại sai',
-            'Sai mật khẩu',
-            'Current password is incorrect',
-            'Incorrect current password',
-        ];
+  async (error: AxiosError) => {
+    const errorMessage = (error.response?.data as any)?.error || 'Đã có lỗi xảy ra';
+    if (error.response?.status === 401) {
+      // Nếu là lỗi xác thực do sai mật khẩu thì chỉ Alert, không chuyển trang
+      if (typeof errorMessage === 'string' && errorMessage.includes('Mật khẩu hiện tại không chính xác')) {
+        Alert.alert('Thông báo', errorMessage);
+      } else {
+        await AsyncStorage.setItem('NEED_LOGIN_REDIRECT', 'true');
         Alert.alert('Thông báo', errorMessage, [
-            {
-                text: 'OK',
-                onPress: async () => {
-                    if (status === 401) {
-                        // Nếu là lỗi đổi mật khẩu thì KHÔNG logout
-                        if (passwordErrors.some(msg => errorMessage.includes(msg))) {
-                            // Chỉ alert, không logout
-                            return;
-                        }
-                        // Nếu là lỗi hết hạn token hoặc các lỗi xác thực khác thì logout
-                        if (
-                            errorMessage.includes('Token hết hạn') ||
-                            errorMessage.includes('jwt expired') ||
-                            errorMessage.includes('Không tìm thấy token') ||
-                            errorMessage.includes('Unauthorized')
-                        ) {
-                            const router = require('expo-router').useRouter();
-                            // Chuyển về login
-                            router.replace('/login');
-                        }
-                    }
-                },
+          {
+            text: 'OK',
+            onPress: () => {
+              try {
+                // Chuyển trang login nếu dùng expo-router
+                const router = require('expo-router').router;
+                if (router && typeof router.replace === 'function') {
+                  router.replace('/login');
+                }
+              } catch (e) {}
             },
+          },
         ]);
-        return Promise.reject(error.response?.data);
+      }
+    } else {
+      Alert.alert('Thông báo', errorMessage);
     }
+    return Promise.reject(error.response?.data);
+  }
 );
 
 export const authApi = {

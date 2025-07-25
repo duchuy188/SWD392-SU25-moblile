@@ -65,6 +65,7 @@ const quickReplies = [
 ];
 
 export default function ChatbotScreen() {
+
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
@@ -72,11 +73,37 @@ export default function ChatbotScreen() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDeleteMenu, setShowDeleteMenu] = useState<string | null>(null);
   const [isBotReplying, setIsBotReplying] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const slideAnimation = useRef(
     new Animated.Value(-SCREEN_WIDTH * 0.8)
   ).current;
+
+  // Use expo-router for navigation
+  const router = require('expo-router').router;
+
+  // Check login status on mount
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        setIsLoggedIn(false);
+        Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
+          {
+            text: 'Đăng nhập',
+            onPress: () => {
+              if (router) router.replace('/login');
+            },
+          },
+        ]);
+      } else {
+        setIsLoggedIn(true);
+      }
+    };
+    checkLogin();
+  }, []);
 
   const openMenu = () => {
     setIsMenuOpen(true);
@@ -137,6 +164,17 @@ export default function ChatbotScreen() {
   };
 
   const handleSend = async () => {
+    if (!isLoggedIn) {
+      Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
+        {
+          text: 'Đăng nhập',
+          onPress: () => {
+            if (router) router.replace('/login');
+          },
+        },
+      ]);
+      return;
+    }
     if (inputMessage.trim() === '' || isBotReplying) return;
 
     const userMessage: Message = {
@@ -159,6 +197,7 @@ export default function ChatbotScreen() {
 
       // Kiểm tra response có lỗi không
       if (!response || response.error) {
+        setErrorMessage(response?.error || 'API response error');
         throw new Error(response?.error || 'API response error');
       }
 
@@ -178,6 +217,7 @@ export default function ChatbotScreen() {
       }
 
       await loadInitialChatHistory();
+      setErrorMessage(null);
     } catch (error: any) {
       setMessages((prevMessages) => {
         const filtered = prevMessages.filter((msg) => msg.id !== 'loading');
@@ -188,12 +228,24 @@ export default function ChatbotScreen() {
           timestamp: new Date(),
         }];
       });
+      if (error?.message) setErrorMessage(error.message);
     } finally {
       setIsBotReplying(false);
     }
   };
 
   const handleQuickReply = async (text: string) => {
+    if (!isLoggedIn) {
+      Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
+        {
+          text: 'Đăng nhập',
+          onPress: () => {
+            if (router) router.replace('/login');
+          },
+        },
+      ]);
+      return;
+    }
     const userMessage: Message = {
       id: Date.now().toString(),
       text: text,
@@ -208,7 +260,7 @@ export default function ChatbotScreen() {
 
       if (response.error?.includes('đăng nhập lại')) {
         await AsyncStorage.removeItem(TOKEN_KEY);
-        Alert.alert('Phiên đăng nhập hết hạn', 'Vui lòng đăng nhập lại');
+        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
         return;
       }
 
@@ -226,24 +278,37 @@ export default function ChatbotScreen() {
       }
 
       await loadInitialChatHistory();
+      setErrorMessage(null);
     } catch (error: any) {
       if (error?.status === 401) {
         await AsyncStorage.removeItem(TOKEN_KEY);
-        Alert.alert('Phiên đăng nhập hết hạn', 'Vui lòng đăng nhập lại');
+        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
         return;
       }
 
-      const errorMessage: Message = {
+      setErrorMessage('Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.');
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.',
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      setMessages((prevMessages) => [...prevMessages, errorMsg]);
     }
   };
 
   const handleAddImage = async () => {
+    if (!isLoggedIn) {
+      Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
+        {
+          text: 'Đăng nhập',
+          onPress: () => {
+            if (router) router.replace('/login');
+          },
+        },
+      ]);
+      return;
+    }
     const { status: cameraStatus } =
       await ImagePicker.requestCameraPermissionsAsync();
     const { status: mediaLibraryStatus } =
@@ -305,6 +370,17 @@ export default function ChatbotScreen() {
   const handleImageSelected = async (
     imageAsset: ImagePicker.ImagePickerAsset
   ) => {
+    if (!isLoggedIn) {
+      Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
+        {
+          text: 'Đăng nhập',
+          onPress: () => {
+            if (router) router.replace('/login');
+          },
+        },
+      ]);
+      return;
+    }
     const imageMessage: Message = {
       id: Date.now().toString(),
       text: 'Đã gửi hình ảnh',
@@ -330,7 +406,7 @@ export default function ChatbotScreen() {
 
       if (response.error?.includes('đăng nhập lại')) {
         await AsyncStorage.removeItem(TOKEN_KEY);
-        Alert.alert('Phiên đăng nhập hết hạn', 'Vui lòng đăng nhập lại');
+        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
         return;
       }
 
@@ -348,20 +424,22 @@ export default function ChatbotScreen() {
       }
 
       await loadInitialChatHistory();
+      setErrorMessage(null);
     } catch (error: any) {
       if (error?.status === 401) {
         await AsyncStorage.removeItem(TOKEN_KEY);
-        Alert.alert('Phiên đăng nhập hết hạn', 'Vui lòng đăng nhập lại');
+        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
         return;
       }
 
-      const errorMessage: Message = {
+      setErrorMessage('Xin lỗi, không thể xử lý hình ảnh. Vui lòng thử lại.');
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: 'Xin lỗi, không thể xử lý hình ảnh. Vui lòng thử lại.',
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      setMessages((prevMessages) => [...prevMessages, errorMsg]);
     }
   };
 
@@ -395,7 +473,7 @@ export default function ChatbotScreen() {
         setChatHistory([]);
       }
     } catch (error: any) {
-      console.log('Load chat history error:', error.message); // Chỉ log message
+      // Đã bỏ log lỗi ra console
       setChatHistory([]);
     }
   };
@@ -527,12 +605,11 @@ export default function ChatbotScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>EduBot Chat</Text>
+      {/* <View style={styles.header}>
         <Text style={styles.headerSubtitle}>
           Hỏi đáp trực tiếp với trợ lý AI
         </Text>
-      </View>
+      </View> */}
 
       <ScrollView
         ref={scrollViewRef}
@@ -604,6 +681,12 @@ export default function ChatbotScreen() {
           <Send size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+      {/* Error message below input */}
+      {errorMessage && (
+        <View style={{paddingHorizontal: 16, paddingBottom: 8}}>
+          <Text style={{color: '#EF4444', fontSize: 13}}>{errorMessage}</Text>
+        </View>
+      )}
 
       {/* Slide Menu */}
       {isMenuOpen && (

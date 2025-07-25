@@ -114,7 +114,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chatbot"
         options={{
-          title: 'Chatbot',
+          title: 'EduBot Chat',
           tabBarIcon: ({ color, size }) => (
             <MessageSquare size={size} color={color} />
           ),

@@ -43,7 +43,11 @@ export default function ProfileInfoScreen() {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -66,12 +70,25 @@ export default function ProfileInfoScreen() {
   }, []);
 
   const handleChangePassword = async () => {
-    if (!currentPassword.trim() || !newPassword.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới!');
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmNewPassword.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu mới!');
       return;
     }
-    if (newPassword.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự!');
+    // Kiểm tra mật khẩu mới: ít nhất 6 ký tự, bao gồm cả chữ và số
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    if (newPassword.length < 6 || !hasLetter || !hasNumber) {
+      Alert.alert('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự, bao gồm cả chữ và số!');
+      return;
+    }
+    // Kiểm tra mật khẩu mới không được trùng với mật khẩu hiện tại
+    if (newPassword === currentPassword) {
+      Alert.alert('Lỗi', 'Mật khẩu mới không được trùng với mật khẩu hiện tại!');
+      return;
+    }
+    // Kiểm tra xác nhận mật khẩu mới
+    if (newPassword !== confirmNewPassword) {
+      Alert.alert('Lỗi', 'Xác nhận mật khẩu mới không khớp!');
       return;
     }
     setChangingPassword(true);
@@ -84,6 +101,10 @@ export default function ProfileInfoScreen() {
             setChangePasswordModalVisible(false);
             setCurrentPassword('');
             setNewPassword('');
+            setConfirmNewPassword('');
+            setShowCurrentPassword(false);
+            setShowNewPassword(false);
+            setShowConfirmNewPassword(false);
           }
         }
       ]);
@@ -98,23 +119,23 @@ export default function ProfileInfoScreen() {
         errorMsg = error.message;
       }
       // Nếu là lỗi xác thực nhưng message là "Mật khẩu hiện tại không chính xác" thì không logout
-      if (
-        error?.response?.status === 401 || error?.response?.status === 403
-      ) {
-        if (
-          errorMsg.includes('Mật khẩu hiện tại không chính xác') ||
-          errorMsg.includes('Sai mật khẩu')
-        ) {
-          // Chỉ Alert lỗi, không logout
-          Alert.alert('Lỗi', errorMsg);
-        } else {
-          // Nếu là lỗi xác thực khác, có thể logout hoặc chuyển trang
-          Alert.alert('Lỗi', 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
-          // Có thể gọi router.replace('/login') hoặc hàm logout ở đây nếu muốn
-        }
-      } else {
-        Alert.alert('Lỗi', errorMsg);
-      }
+      // if (
+      //   error?.response?.status === 401 || error?.response?.status === 403
+      // ) {
+      //   if (
+      //     errorMsg.includes('Mật khẩu hiện tại không chính xác') ||
+      //     errorMsg.includes('Sai mật khẩu')
+      //   ) {
+      //     // Chỉ Alert lỗi, không logout
+      //     Alert.alert('Lỗi', errorMsg);
+      //   } else {
+      //     // Nếu là lỗi xác thực khác, có thể logout hoặc chuyển trang
+      //     Alert.alert('Lỗi', 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
+      //     // Có thể gọi router.replace('/login') hoặc hàm logout ở đây nếu muốn
+      //   }
+      // } else {
+      //   Alert.alert('Lỗi', errorMsg);
+      // }
     } finally {
       setChangingPassword(false);
     }
@@ -227,7 +248,7 @@ export default function ProfileInfoScreen() {
         formData.append('phone', form.phone);
         formData.append('address', form.address);
         formData.append('profilePicture', {
-          uri: selectedFile.uri,
+          uri: selectedFile.uri ,
           type: selectedFile.type || 'image/jpeg',
           name: selectedFile.name || 'avatar.jpg',
         } as any);
@@ -238,7 +259,7 @@ export default function ProfileInfoScreen() {
           fullName: form.fullName,
           phone: form.phone,
           address: form.address,
-          profilePicture: user?.profilePicture || '',
+          profilePicture: user?.profilePicture || 'https://randomuser.me/api/portraits/men/1.jpg',
         };
         updatedUserData = await authApi.updateUser(updateData);
       }
@@ -283,9 +304,15 @@ export default function ProfileInfoScreen() {
       gap: 12,
     }}>
       <Feather name={icon} size={20} color={PRIMARY} style={{ marginRight: 2 }} />
-      <View>
+      <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, color: SUBTEXT }}>{label}</Text>
-        <Text style={{ fontSize: 17, fontWeight: '500', color: TEXT }}>{value}</Text>
+        <Text
+          style={{ fontSize: 17, fontWeight: '500', color: TEXT }}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {value}
+        </Text>
       </View>
     </View>
   );
@@ -293,7 +320,7 @@ export default function ProfileInfoScreen() {
   // Hiển thị ảnh hiện tại (có thể là preview hoặc ảnh từ server)
   const getCurrentImageUri = () => {
     if (previewUrl) return previewUrl; // Ưu tiên ảnh preview
-    if (user?.profilePicture) return user.profilePicture; // Ảnh từ server
+    if (user?.profilePicture || 'https://randomuser.me/api/portraits/men/1.jpg') return user.profilePicture || 'https://randomuser.me/api/portraits/men/1.jpg'; // Ảnh từ server
     return null;
   };
 
@@ -555,17 +582,28 @@ export default function ProfileInfoScreen() {
                 label="Mật khẩu hiện tại"
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                secureTextEntry
+                secureTextEntry={!showCurrentPassword}
                 style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
                 theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                right={<TextInput.Icon icon={showCurrentPassword ? "eye-off" : "eye"} onPress={() => setShowCurrentPassword(v => !v)} />}
               />
               <TextInput
                 label="Mật khẩu mới"
                 value={newPassword}
                 onChangeText={setNewPassword}
-                secureTextEntry
+                secureTextEntry={!showNewPassword}
                 style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
                 theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                right={<TextInput.Icon icon={showNewPassword ? "eye-off" : "eye"} onPress={() => setShowNewPassword(v => !v)} />}
+              />
+              <TextInput
+                label="Xác nhận mật khẩu mới"
+                value={confirmNewPassword}
+                onChangeText={setConfirmNewPassword}
+                secureTextEntry={!showConfirmNewPassword}
+                style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                right={<TextInput.Icon icon={showConfirmNewPassword ? "eye-off" : "eye"} onPress={() => setShowConfirmNewPassword(v => !v)} />}
               />
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
                 <Button

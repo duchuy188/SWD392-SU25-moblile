@@ -34,7 +34,6 @@ chatApi.interceptors.response.use(
   },
   (error: AxiosError) => {
     const errorData = error.response?.data as any;
-    console.error('Chat API Response Error:', errorData);
 
     // Don't show alerts, just return the error data
     return Promise.reject(errorData || error);
@@ -74,7 +73,6 @@ export const sendMessage = async (
 
     return response.data;
   } catch (error) {
-    console.error('Error sending message:', error);
     throw error;
   }
 };
@@ -85,7 +83,6 @@ export const createNewConversation = async (): Promise<any> => {
     const response: AxiosResponse = await chatApi.post('/api/chat/new');
     return response.data;
   } catch (error) {
-    console.error('Error creating new conversation:', error);
     throw error;
   }
 };
@@ -96,8 +93,6 @@ export const getConversationHistory = async (): Promise<any> => {
     const response: AxiosResponse = await chatApi.get('/api/chat/history');
     return response.data;
   } catch (error: any) {
-    console.error('Error getting conversation history:', error);
-
     // Handle specific cases for empty history
     if (
       error?.message?.includes('Chưa có lịch sử chat') ||
@@ -123,7 +118,6 @@ export const getConversationById = async (chatId: string): Promise<any> => {
     const response: AxiosResponse = await chatApi.get(`/api/chat/${chatId}`);
     return response.data;
   } catch (error) {
-    console.error('Error getting conversation by ID:', error);
     throw error;
   }
 };
@@ -138,7 +132,6 @@ export const deleteConversationById = async (chatId: string): Promise<any> => {
     const response: AxiosResponse = await chatApi.delete(`/api/chat/${chatId}`);
     return response.data;
   } catch (error) {
-    console.error('Error deleting conversation:', error);
     throw error;
   }
 };
@@ -149,7 +142,6 @@ export const checkChatAuth = async (): Promise<boolean> => {
     const token = await AsyncStorage.getItem(TOKEN_KEY);
     return !!token;
   } catch (error) {
-    console.error('Error checking chat auth:', error);
     return false;
   }
 };
@@ -159,7 +151,6 @@ export const clearChatAuth = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(TOKEN_KEY);
   } catch (error) {
-    console.error('Error clearing chat auth:', error);
   }
 };
 
