@@ -71,6 +71,7 @@ export default function ChatbotScreen() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDeleteMenu, setShowDeleteMenu] = useState<string | null>(null);
+  const [isBotReplying, setIsBotReplying] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const slideAnimation = useRef(
@@ -136,7 +137,7 @@ export default function ChatbotScreen() {
   };
 
   const handleSend = async () => {
-    if (inputMessage.trim() === '') return;
+    if (inputMessage.trim() === '' || isBotReplying) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -145,7 +146,8 @@ export default function ChatbotScreen() {
       timestamp: new Date(),
     };
 
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setMessages((prevMessages) => [...prevMessages, userMessage, { id: 'loading', text: '...', isBot: true, timestamp: new Date() }]);
+    setIsBotReplying(true);
     const currentInput = inputMessage;
     setInputMessage('');
 
@@ -160,15 +162,16 @@ export default function ChatbotScreen() {
         throw new Error(response?.error || 'API response error');
       }
 
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text:
-          response.response || 'Xin lỗi, không nhận được phản hồi từ server.',
-        isBot: true,
-        timestamp: new Date(),
-      };
-
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      setMessages((prevMessages) => {
+        // Xóa message loading
+        const filtered = prevMessages.filter((msg) => msg.id !== 'loading');
+        return [...filtered, {
+          id: (Date.now() + 1).toString(),
+          text: response.response || 'Xin lỗi, không nhận được phản hồi từ server.',
+          isBot: true,
+          timestamp: new Date(),
+        }];
+      });
 
       if (!currentChatId && response.chatId) {
         setCurrentChatId(response.chatId);
@@ -176,15 +179,17 @@ export default function ChatbotScreen() {
 
       await loadInitialChatHistory();
     } catch (error: any) {
-      console.log('Send message error:', error.message); // Chỉ log message, không log full error
-
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Xin lỗi, server đang bảo trì. Vui lòng thử lại sau.',
-        isBot: true,
-        timestamp: new Date(),
-      };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      setMessages((prevMessages) => {
+        const filtered = prevMessages.filter((msg) => msg.id !== 'loading');
+        return [...filtered, {
+          id: (Date.now() + 1).toString(),
+          text: 'Xin lỗi, server đang bảo trì. Vui lòng thử lại sau.',
+          isBot: true,
+          timestamp: new Date(),
+        }];
+      });
+    } finally {
+      setIsBotReplying(false);
     }
   };
 
@@ -541,7 +546,9 @@ export default function ChatbotScreen() {
         decelerationRate="normal"
       >
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          message.id === 'loading'
+            ? <ChatMessage key={message.id} message={{...message, text: <BlinkingDots />}} />
+            : <ChatMessage key={message.id} message={message} />
         ))}
       </ScrollView>
 
@@ -555,7 +562,10 @@ export default function ChatbotScreen() {
             <QuickReply
               key={reply.id}
               text={reply.text}
-              onPress={() => handleQuickReply(reply.text)}
+              onPress={() => {
+                if (!isBotReplying) setInputMessage(reply.text);
+              }}
+              disabled={isBotReplying}
             />
           ))}
         </ScrollView>
@@ -580,15 +590,16 @@ export default function ChatbotScreen() {
           onChangeText={setInputMessage}
           onFocus={handleInputFocus}
           multiline
+          editable={!isBotReplying}
         />
 
         <TouchableOpacity
           style={[
             styles.sendButton,
-            !inputMessage.trim() && styles.sendButtonDisabled,
+            (!inputMessage.trim() || isBotReplying) && styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
-          disabled={!inputMessage.trim()}
+          disabled={!inputMessage.trim() || isBotReplying}
         >
           <Send size={20} color="#FFFFFF" />
         </TouchableOpacity>
@@ -913,3 +924,13 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
 });
+
+// Component dấu ... nhấp nháy
+function BlinkingDots() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const interval = setInterval(() => setVisible(v => !v), 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <Text style={{fontSize: 18, color: Colors.textLight}}>{visible ? '...' : ''}</Text>;
+}

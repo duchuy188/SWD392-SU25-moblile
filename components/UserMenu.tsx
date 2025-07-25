@@ -23,9 +23,9 @@ export default function UserMenu({
   if (!user) return null;
   return (
     <>
-      <Pressable onPress={() => router.push('/(tabs)/contact')}>
+      {/* <Pressable onPress={() => router.push('/(tabs)/contact')}>
         <Avatar email={user.email} profilePicture={user.profilePicture} />
-      </Pressable>
+      </Pressable> */}
     </>
   );
 }

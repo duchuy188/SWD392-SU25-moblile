@@ -76,6 +76,9 @@ export default function SignUpScreen() {
     if (!phone.trim()) {
       setPhoneError('Số điện thoại không được để trống');
       isValid = false;
+    } else if (!/^\d{10}$/.test(phone)) {
+      setPhoneError('Số điện thoại phải đủ 10 số và chỉ chứa số');
+      isValid = false;
     }
 
     if (!password) {

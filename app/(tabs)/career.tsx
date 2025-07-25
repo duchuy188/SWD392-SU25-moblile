@@ -42,6 +42,7 @@ export default function TestScreen() {
         </Text>
       </View>
 
+      {/* Ensure no text is rendered directly inside View */}
       <View style={styles.introContainer}>
         <Image 
           source={{ uri: 'https://images.pexels.com/photos/6147160/pexels-photo-6147160.jpeg' }}
@@ -65,7 +66,7 @@ export default function TestScreen() {
                 onPress={() => toggleExpand(test._id)}
               >
                 <View style={styles.careerPathTitleContainer}>
-                  <View style={[styles.careerPathIcon, { backgroundColor: Colors.secondary }]}> {/* You can randomize or map color/icon if needed */}
+                  <View style={[styles.careerPathIcon, { backgroundColor: Colors.secondary }]}> 
                     <Text style={styles.careerPathIconText}>📝</Text>
                   </View>
                   <View>
