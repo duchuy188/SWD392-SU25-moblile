@@ -488,7 +488,50 @@ export default function ProfileInfoScreen() {
               </View>
             ) : (
               <View style={{ width: '100%', marginTop: 0 }}>
-                {/* ...existing code... */}
+                {/* Form chỉnh sửa thông tin */}
+                <TextInput
+                  label="Họ và tên"
+                  value={form.fullName}
+                  onChangeText={text => handleChange('fullName', text)}
+                  style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                />
+                <TextInput
+                  label="Số điện thoại"
+                  value={form.phone}
+                  onChangeText={text => handleChange('phone', text)}
+                  keyboardType="phone-pad"
+                  style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                />
+                <TextInput
+                  label="Địa chỉ"
+                  value={form.address}
+                  onChangeText={text => handleChange('address', text)}
+                  style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+                />
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+                  <Button
+                    mode="outlined"
+                    onPress={handleCancel}
+                    style={{ borderRadius: 16, minWidth: 70, borderColor: PRIMARY, borderWidth: 1.5 }}
+                    labelStyle={{ fontWeight: 'bold', color: PRIMARY }}
+                    disabled={loading || uploadingImage}
+                  >
+                    Huỷ
+                  </Button>
+                  <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    style={{ borderRadius: 16, minWidth: 70, backgroundColor: PRIMARY }}
+                    labelStyle={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}
+                    disabled={loading || uploadingImage}
+                    loading={loading || uploadingImage}
+                  >
+                    Lưu
+                  </Button>
+                </View>
               </View>
             )}
           </View>
