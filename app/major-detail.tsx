@@ -165,80 +165,85 @@ export default function MajorDetailScreen() {
           <View style={styles.descSection}>
             <Text style={styles.descTitle}>Chương trình đào tạo</Text>
             <Text style={styles.description}>Tổng số tín chỉ: {major.totalCredits}</Text>
-            {major.programStructure.preparation && (
-              <View style={{marginTop: 8}}>
-                <Text style={{fontWeight: 'bold'}}>Giai đoạn chuẩn bị</Text>
-                <Text>Thời gian: {major.programStructure.preparation.duration}</Text>
-                <Text>Mục tiêu:</Text>
-                {major.programStructure.preparation.objectives?.map((obj, idx) => (
-                  <Text key={idx}>• {obj}</Text>
-                ))}
-                {major.programStructure.preparation.courses && (
-                  <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 4}}>
-                    {major.programStructure.preparation.courses.map((course, idx) => (
-                      <Text key={idx} style={{backgroundColor: '#eee', margin: 2, padding: 4, borderRadius: 6}}>{course}</Text>
-                    ))}
+            <View style={{marginTop: 12}}>
+              {/* Giai đoạn chuẩn bị */}
+              {major.programStructure.preparation && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="rocket-outline" size={22} color="#38BDF8" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn chuẩn bị</Text>
                   </View>
-                )}
-              </View>
-            )}
-            {major.programStructure.basic && (
-              <View style={{marginTop: 8}}>
-                <Text style={{fontWeight: 'bold'}}>Giai đoạn cơ bản</Text>
-                <Text>Thời gian: {major.programStructure.basic.duration}</Text>
-                <Text>Mục tiêu:</Text>
-                {major.programStructure.basic.objectives?.map((obj, idx) => (
-                  <Text key={idx}>• {obj}</Text>
-                ))}
-                {major.programStructure.basic.courses && (
-                  <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 4}}>
-                    {major.programStructure.basic.courses.map((course, idx) => (
-                      <Text key={idx} style={{backgroundColor: '#eee', margin: 2, padding: 4, borderRadius: 6}}>{course}</Text>
-                    ))}
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.preparation.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.preparation.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.preparation.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.preparation.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* Giai đoạn cơ bản */}
+              {major.programStructure.basic && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="book-outline" size={22} color="#8B5CF6" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn cơ bản</Text>
                   </View>
-                )}
-              </View>
-            )}
-            {major.programStructure.ojt && (
-              <View style={{marginTop: 8}}>
-                <Text style={{fontWeight: 'bold'}}>Giai đoạn thực tập</Text>
-                <Text>Thời gian: {major.programStructure.ojt.duration}</Text>
-                <Text>Mục tiêu:</Text>
-                {major.programStructure.ojt.objectives?.map((obj, idx) => (
-                  <Text key={idx}>• {obj}</Text>
-                ))}
-              </View>
-            )}
-            {major.programStructure.specialization && (
-              <View style={{marginTop: 8}}>
-                <Text style={{fontWeight: 'bold'}}>Giai đoạn chuyên ngành</Text>
-                <Text>Thời gian: {major.programStructure.specialization.duration}</Text>
-                <Text>Mục tiêu:</Text>
-                {major.programStructure.specialization.objectives?.map((obj, idx) => (
-                  <Text key={idx}>• {obj}</Text>
-                ))}
-                {major.programStructure.specialization.courses && (
-                  <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 4}}>
-                    {major.programStructure.specialization.courses.map((course, idx) => (
-                      <Text key={idx} style={{backgroundColor: '#eee', margin: 2, padding: 4, borderRadius: 6}}>{course}</Text>
-                    ))}
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.basic.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.basic.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.basic.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.basic.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* Giai đoạn thực tập */}
+              {major.programStructure.ojt && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="briefcase-outline" size={22} color="#FACC15" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn thực tập</Text>
                   </View>
-                )}
-              </View>
-            )}
-            {major.programStructure.graduation && (
-              <View style={{marginTop: 8}}>
-                <Text style={{fontWeight: 'bold'}}>Giai đoạn tốt nghiệp</Text>
-                <Text>Thời gian: {major.programStructure.graduation.duration}</Text>
-                <Text>Mục tiêu:</Text>
-                {major.programStructure.graduation.objectives?.map((obj, idx) => (
-                  <Text key={idx}>• {obj}</Text>
-                ))}
-                {major.programStructure.graduation.options && (
-                  <Text style={{marginTop: 4}}>Lựa chọn: {major.programStructure.graduation.options.join(', ')}</Text>
-                )}
-              </View>
-            )}
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.ojt.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.ojt.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                </View>
+              )}
+              {/* Giai đoạn chuyên ngành */}
+              {major.programStructure.specialization && (
+                <View style={styles.eduCard}>
+                  <View style={styles.eduHeader}>
+                    <Ionicons name="school-outline" size={22} color="#3B82F6" style={{marginRight: 8}} />
+                    <Text style={styles.eduTitle}>Giai đoạn chuyên ngành</Text>
+                  </View>
+                  <Text style={styles.eduDuration}>Thời gian: {major.programStructure.specialization.duration}</Text>
+                  <Text style={styles.eduLabel}>Mục tiêu:</Text>
+                  {major.programStructure.specialization.objectives?.map((obj, idx) => (
+                    <Text key={idx} style={styles.eduObjective}>• {obj}</Text>
+                  ))}
+                  {major.programStructure.specialization.courses && (
+                    <View style={styles.eduCoursesWrap}>
+                      {major.programStructure.specialization.courses.map((course, idx) => (
+                        <Text key={idx} style={styles.eduCourse}>{course}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
           </View>
         )}
 
@@ -536,4 +541,62 @@ const styles = StyleSheet.create({
   fabBack: {
     alignSelf: 'center',
   },
-}); 
+  eduCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  eduHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  eduTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  eduDuration: {
+    fontSize: 13,
+    color: '#3B82F6',
+    marginBottom: 4,
+  },
+  eduLabel: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  eduObjective: {
+    fontSize: 13,
+    color: '#222',
+    marginLeft: 8,
+    marginBottom: 2,
+  },
+  eduCoursesWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 4,
+  },
+  eduCourse: {
+    backgroundColor: '#E0E7FF',
+    margin: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontSize: 12,
+    color: '#3730A3',
+  },
+  eduOption: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#EF4444',
+    fontWeight: '600',
+  },
+});
