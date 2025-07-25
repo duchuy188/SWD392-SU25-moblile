@@ -24,9 +24,7 @@ interface User {
   profilePicture: string;
 }
 
-
 export default function ProfileInfoScreen() {
-
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -40,6 +38,12 @@ export default function ProfileInfoScreen() {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const router = useRouter();
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+
+  // State cho modal đổi mật khẩu (đặt ở đầu thân hàm component)
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -61,7 +65,60 @@ export default function ProfileInfoScreen() {
     fetchProfile();
   }, []);
 
-
+  const handleChangePassword = async () => {
+    if (!currentPassword.trim() || !newPassword.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới!');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự!');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const result = await authApi.changePassword(currentPassword, newPassword);
+      Alert.alert('Thành công', 'Đổi mật khẩu thành công!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setChangePasswordModalVisible(false);
+            setCurrentPassword('');
+            setNewPassword('');
+          }
+        }
+      ]);
+    } catch (error: any) {
+      let errorMsg = 'Đổi mật khẩu thất bại!';
+      // Nếu là lỗi 401/403 nhưng là đổi mật khẩu sai thì không logout
+      if (error?.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      } else if (error?.error) {
+        errorMsg = error.error;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+      // Nếu là lỗi xác thực nhưng message là "Mật khẩu hiện tại không chính xác" thì không logout
+      if (
+        error?.response?.status === 401 || error?.response?.status === 403
+      ) {
+        if (
+          errorMsg.includes('Mật khẩu hiện tại không chính xác') ||
+          errorMsg.includes('Sai mật khẩu')
+        ) {
+          // Chỉ Alert lỗi, không logout
+          Alert.alert('Lỗi', errorMsg);
+        } else {
+          // Nếu là lỗi xác thực khác, có thể logout hoặc chuyển trang
+          Alert.alert('Lỗi', 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
+          // Có thể gọi router.replace('/login') hoặc hàm logout ở đây nếu muốn
+        }
+      } else {
+        Alert.alert('Lỗi', errorMsg);
+      }
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   // Chọn ảnh từ thư viện
   const pickImageFromLibrary = async () => {
@@ -419,85 +476,79 @@ export default function ProfileInfoScreen() {
                 <ProfileField icon="phone" label="Số điện thoại" value={user.phone || '—'} />
                 <ProfileField icon="map-pin" label="Địa chỉ" value={user.address || '—'} />
                 <ProfileField icon="user" label="Vai trò" value={user.role === 'student' ? 'Học Sinh' : user.role} isLast />
+                {/* Nút đổi mật khẩu nằm ngoài ProfileField */}
+                <Button
+                  mode="outlined"
+                  onPress={() => setChangePasswordModalVisible(true)}
+                  style={{ borderRadius: 16, marginTop: 18, borderColor: PRIMARY, borderWidth: 1.5 }}
+                  labelStyle={{ fontWeight: 'bold', color: PRIMARY }}
+                >
+                  Đổi mật khẩu
+                </Button>
               </View>
             ) : (
               <View style={{ width: '100%', marginTop: 0 }}>
-                <TextInput
-                  label="Họ và tên"
-                  value={form.fullName}
-                  onChangeText={text => handleChange('fullName', text)}
-                  style={{
-                    marginBottom: 12,
-                    backgroundColor: '#fff',
-                    borderRadius: 14,
-                    borderWidth: 1.5,
-                    borderColor: BORDER,
-                    fontSize: 16,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                  }}
-                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
-                />
-                <TextInput
-                  label="Số điện thoại"
-                  value={form.phone}
-                  onChangeText={text => handleChange('phone', text)}
-                  style={{
-                    marginBottom: 12,
-                    backgroundColor: '#fff',
-                    borderRadius: 14,
-                    borderWidth: 1.5,
-                    borderColor: BORDER,
-                    fontSize: 16,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                  }}
-                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
-                />
-                <TextInput
-                  label="Địa chỉ"
-                  value={form.address}
-                  onChangeText={text => handleChange('address', text)}
-                  style={{
-                    marginBottom: 12,
-                    backgroundColor: '#fff',
-                    borderRadius: 14,
-                    borderWidth: 1.5,
-                    borderColor: BORDER,
-                    fontSize: 16,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                  }}
-                  theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
-                />
-                
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-                  <Button
-                    mode="outlined"
-                    onPress={handleCancel}
-                    style={{ borderRadius: 16, minWidth: 70, borderColor: PRIMARY, borderWidth: 1.5 }}
-                    labelStyle={{ fontWeight: 'bold', color: PRIMARY }}
-                    disabled={uploadingImage}
-                  >
-                    Huỷ
-                  </Button>
-                  <Button
-                    mode="contained"
-                    onPress={handleSave}
-                    style={{ borderRadius: 16, minWidth: 70, backgroundColor: PRIMARY }}
-                    labelStyle={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}
-                    disabled={uploadingImage}
-                    loading={uploadingImage}
-                  >
-                    Lưu
-                  </Button>
-                </View>
+                {/* ...existing code... */}
               </View>
             )}
           </View>
         </View>
       </ScrollView>
-      
+      {/* Modal đổi mật khẩu - Đặt ngoài ScrollView, không lồng trong avatar */}
+      <Modal
+        visible={changePasswordModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setChangePasswordModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 18, padding: 24, width: '80%', alignItems: 'center' }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 17, color: PRIMARY, marginBottom: 20 }}>
+              Đổi mật khẩu
+            </Text>
+            {/* Sửa lại style cho input và nút nằm dọc */}
+            <View style={{ width: '100%' }}>
+              <TextInput
+                label="Mật khẩu hiện tại"
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                secureTextEntry
+                style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+              />
+              <TextInput
+                label="Mật khẩu mới"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+                style={{ marginBottom: 12, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: BORDER, fontSize: 16, paddingHorizontal: 16, paddingVertical: 10 }}
+                theme={{ colors: { primary: PRIMARY, text: TEXT, placeholder: SUBTEXT } }}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setChangePasswordModalVisible(false)}
+                  style={{ borderRadius: 16, minWidth: 70, borderColor: PRIMARY, borderWidth: 1.5 }}
+                  labelStyle={{ fontWeight: 'bold', color: PRIMARY }}
+                  disabled={changingPassword}
+                >
+                  Huỷ
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleChangePassword}
+                  style={{ borderRadius: 16, minWidth: 70, backgroundColor: PRIMARY }}
+                  labelStyle={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}
+                  disabled={changingPassword}
+                  loading={changingPassword}
+                >
+                  Đổi mật khẩu
+                </Button>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {/* Nút quay lại luôn cố định ở cạnh dưới màn hình */}
       <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center', zIndex: 100 }}>
         <Button
@@ -521,5 +572,5 @@ export default function ProfileInfoScreen() {
         </Button>
       </View>
     </View>
-  );
+  )
 }
