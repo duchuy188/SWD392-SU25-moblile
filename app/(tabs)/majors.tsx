@@ -22,6 +22,7 @@ export default function MajorsScreen() {
       try {
         const params = {
           search: searchQuery || undefined,
+          limit: 20  
         };
         const data = await getMajors(params);
         let majorsList = data.majors || data || [];
