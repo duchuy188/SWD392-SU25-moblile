@@ -75,6 +75,7 @@ export default function ChatbotScreen() {
   const [isBotReplying, setIsBotReplying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [selectedImage, setSelectedImage] = useState<ImagePicker.ImagePickerAsset | null>(null); // Lưu ảnh tạm
 
   const scrollViewRef = useRef<ScrollView>(null);
   const slideAnimation = useRef(
@@ -175,24 +176,35 @@ export default function ChatbotScreen() {
       ]);
       return;
     }
-    if (inputMessage.trim() === '' || isBotReplying) return;
+    if ((inputMessage.trim() === '' && !selectedImage) || isBotReplying) return;
 
+    // Tạo message người dùng
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: inputMessage || (selectedImage ? 'Đã gửi hình ảnh' : ''),
       isBot: false,
       timestamp: new Date(),
+      imageUri: selectedImage?.uri,
     };
 
     setMessages((prevMessages) => [...prevMessages, userMessage, { id: 'loading', text: '...', isBot: true, timestamp: new Date() }]);
     setIsBotReplying(true);
     const currentInput = inputMessage;
+    const imageData = selectedImage
+      ? {
+          uri: selectedImage.uri,
+          name: selectedImage.fileName || `image_${Date.now()}.jpg`,
+          type: selectedImage.mimeType || 'image/jpeg',
+        }
+      : undefined;
     setInputMessage('');
+    setSelectedImage(null);
 
     try {
       const response = await sendMessage(
-        currentInput,
-        currentChatId || undefined
+        currentInput || (selectedImage ? 'Phân tích hình ảnh này giúp tôi' : ''),
+        currentChatId || undefined,
+        imageData
       );
 
       // Kiểm tra response có lỗi không
@@ -344,7 +356,7 @@ export default function ChatbotScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        handleImageSelected(result.assets[0]);
+        setSelectedImage(result.assets[0]); // Lưu ảnh tạm, không gửi ngay
       }
     } catch (error) {
       Alert.alert('Lỗi', 'Không thể chọn ảnh từ thư viện.');
@@ -360,88 +372,14 @@ export default function ChatbotScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        handleImageSelected(result.assets[0]);
+        setSelectedImage(result.assets[0]); // Lưu ảnh tạm, không gửi ngay
       }
     } catch (error) {
       Alert.alert('Lỗi', 'Không thể chụp ảnh.');
     }
   };
 
-  const handleImageSelected = async (
-    imageAsset: ImagePicker.ImagePickerAsset
-  ) => {
-    if (!isLoggedIn) {
-      Alert.alert('Vui lòng đăng nhập', 'Bạn cần đăng nhập để sử dụng chatbot.', [
-        {
-          text: 'Đăng nhập',
-          onPress: () => {
-            if (router) router.replace('/login');
-          },
-        },
-      ]);
-      return;
-    }
-    const imageMessage: Message = {
-      id: Date.now().toString(),
-      text: 'Đã gửi hình ảnh',
-      isBot: false,
-      timestamp: new Date(),
-      imageUri: imageAsset.uri,
-    };
-
-    setMessages((prevMessages) => [...prevMessages, imageMessage]);
-
-    try {
-      const imageData = {
-        uri: imageAsset.uri,
-        name: imageAsset.fileName || `image_${Date.now()}.jpg`,
-        type: imageAsset.mimeType || 'image/jpeg',
-      };
-
-      const response = await sendMessage(
-        'Phân tích hình ảnh này giúp tôi',
-        currentChatId || undefined,
-        imageData
-      );
-
-      if (response.error?.includes('đăng nhập lại')) {
-        await AsyncStorage.removeItem(TOKEN_KEY);
-        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
-        return;
-      }
-
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response.response,
-        isBot: true,
-        timestamp: new Date(),
-      };
-
-      setMessages((prevMessages) => [...prevMessages, botResponse]);
-
-      if (!currentChatId && response.chatId) {
-        setCurrentChatId(response.chatId);
-      }
-
-      await loadInitialChatHistory();
-      setErrorMessage(null);
-    } catch (error: any) {
-      if (error?.status === 401) {
-        await AsyncStorage.removeItem(TOKEN_KEY);
-        setErrorMessage('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
-        return;
-      }
-
-      setErrorMessage('Xin lỗi, không thể xử lý hình ảnh. Vui lòng thử lại.');
-      const errorMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Xin lỗi, không thể xử lý hình ảnh. Vui lòng thử lại.',
-        isBot: true,
-        timestamp: new Date(),
-      };
-      setMessages((prevMessages) => [...prevMessages, errorMsg]);
-    }
-  };
+  // Xóa handleImageSelected, không dùng nữa
 
   useEffect(() => {
     loadInitialChatHistory();
@@ -624,7 +562,7 @@ export default function ChatbotScreen() {
       >
         {messages.map((message) => (
           message.id === 'loading'
-            ? <ChatMessage key={message.id} message={{...message, text: <BlinkingDots />}} />
+            ? <ChatMessage key={message.id} message={{...message, text: '...'}} customContent={<BlinkingDots />} />
             : <ChatMessage key={message.id} message={message} />
         ))}
       </ScrollView>
@@ -642,7 +580,6 @@ export default function ChatbotScreen() {
               onPress={() => {
                 if (!isBotReplying) setInputMessage(reply.text);
               }}
-              disabled={isBotReplying}
             />
           ))}
         </ScrollView>
@@ -660,23 +597,42 @@ export default function ChatbotScreen() {
           </TouchableOpacity>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nhập câu hỏi..."
-          value={inputMessage}
-          onChangeText={setInputMessage}
-          onFocus={handleInputFocus}
-          multiline
-          editable={!isBotReplying}
-        />
+        <View style={{flex: 1, flexDirection: 'column'}}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập câu hỏi..."
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            onFocus={handleInputFocus}
+            multiline
+            editable={!isBotReplying}
+          />
+          {/* Hiển thị ảnh preview nếu có ảnh được chọn */}
+          {selectedImage && (
+            <View style={{marginTop: 8, alignItems: 'flex-start', width: '100%'}}>
+              <View style={{position: 'relative', width: 120, height: 90}}>
+                <Animated.Image
+                  source={{ uri: selectedImage.uri }}
+                  style={{ width: 120, height: 90, borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB' }}
+                />
+                <TouchableOpacity
+                  style={{ position: 'absolute', top: 4, right: 4, backgroundColor: '#fff', borderRadius: 12, padding: 2 }}
+                  onPress={() => setSelectedImage(null)}
+                >
+                  <X size={16} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity
           style={[
             styles.sendButton,
-            (!inputMessage.trim() || isBotReplying) && styles.sendButtonDisabled,
+            ((inputMessage.trim() === '' && !selectedImage) || isBotReplying) && styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
-          disabled={!inputMessage.trim() || isBotReplying}
+          disabled={(inputMessage.trim() === '' && !selectedImage) || isBotReplying}
         >
           <Send size={20} color="#FFFFFF" />
         </TouchableOpacity>

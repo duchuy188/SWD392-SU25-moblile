@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, Image } from 'react-native';
 import Colors from '@/constants/Colors';
+import React from 'react';
 
 export type Message = {
   id: string;
@@ -11,9 +12,10 @@ export type Message = {
 
 type ChatMessageProps = {
   message: Message;
+  customContent?: React.ReactNode;
 };
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, customContent }: ChatMessageProps) {
   const formattedTime = message.timestamp.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -41,14 +43,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
             resizeMode="cover"
           />
         )}
-        <Text
-          style={[
-            styles.messageText,
-            message.isBot ? styles.botMessageText : styles.userMessageText,
-          ]}
-        >
-          {message.text}
-        </Text>
+        {customContent ? (
+          customContent
+        ) : (
+          <Text
+            style={[
+              styles.messageText,
+              message.isBot ? styles.botMessageText : styles.userMessageText,
+            ]}
+          >
+            {message.text}
+          </Text>
+        )}
       </View>
       <Text
         style={[
